@@ -1,2 +1,2 @@
 # fablet
-A client/manager/tools collections of Hyperledger Fabric blockchain platform.
+A client tools collections of Hyperledger Fabric blockchain platform.
