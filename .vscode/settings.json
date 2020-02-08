@@ -1,0 +1,13 @@
+{
+    "go.testFlags": [
+        "-v",
+        "-count=1"
+    ],
+    "go.autocompleteUnimportedPackages": true,
+    "go.docsTool": "gogetdoc",
+    "go.formatTool": "goimports",
+    "go.testTimeout": "3600s",
+    "files.exclude": {
+        "web/": true
+    }
+}

@@ -1,0 +1,25 @@
+{
+  "short_name": "Fablet",
+  "name": "Fablet - client for Hyperledger Fabric",
+  "icons": [
+    {
+      "src": "fablet64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "fablet192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "fablet512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
