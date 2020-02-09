@@ -1,9 +1,25 @@
 # Fablet
-A management tools set for Hyperledger Fabric blockchain platform.
+A client tools set for Hyperledger Fabric blockchain platform.  
+It is composed of 2 project:   
+* Service project  
+  Under folder `./`.  
+  It is developed in Go language, it provides web service, and html/js/image host.
 
-cd ~
-git clone https://github.com/IBM/fablet.git
-cd fablet
+* Web project  
+  Under folder `./web`.  
+  It is developed in Javascript on React.
+
+  These 2 projects folders can be opened as individual project, by MS Code or other IDE.
+
+# Usage
+*Please*
+
+# Development
+``` 
+git clone https://github.com/IBM/fablet.git  
+cd fablet  
+./build.sh
+ ```
 
 
 go env -w GOPROXY=https://goproxy.io,direct
