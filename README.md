@@ -27,6 +27,7 @@ If it is the first time you access the service, you need to provices some materi
 Please find this chaincode (Go) example can be installed via Fablet page.
 
 ### Installation
+*An exmaple chaincode `vsinst` has already been instantiated.*
 * Tar file  
   https://bctest01.fablet.pub:8081/test/vs_src.tar
 
@@ -46,12 +47,23 @@ Please find this chaincode (Go) example can be installed via Fablet page.
 ### Execution
 * Function name
   ```
-  invoke 
+  createVehicle 
   ```
 
 * Arguments
   ```
   v001,brand001
+  ```
+  
+### Query
+* Function name
+  ```
+  findVehicle 
+  ```
+
+* Arguments
+  ```
+  v001
   ```
   
 *No more document for user now. I think that user should get all points from the UI directly, instead of documentation.*
