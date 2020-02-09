@@ -4,22 +4,30 @@ It can help blockchain participants to connect to Fabric network, and perform op
 
 # Playground
 An example Fablet service was set up with a Fabric network, you can try it via:  
-https://bctest01.fablet.pub:8080/  
+https://bctest01.fablet.pub:8081/  
 
 If it is the first time you access the service, you need to provices some materials to create the connectdion, we provides some examples corresponding to an example Fabric network (Fabric 1.4.3 first-network with 4 nodes, 5 etcdraft orderer nodes). Please download these accordinginly:  
 
 * Connection Profile  
-  http://bctest01.fablet.pub:8080/test/conn_profile_simple.yaml
+  https://bctest01.fablet.pub:8081/test/conn_profile_simple.yaml
 
 * Identity certificate:  
-  http://bctest01.fablet.pub:8080/test/Admin@org1.example.com-cert.pem  
+  https://bctest01.fablet.pub:8081/test/Admin@org1.example.com-cert.pem  
 
 * Identity private key:  
-  http://bctest01.fablet.pub:8080/test/Admin@org1.example.com.key
+  https://bctest01.fablet.pub:8081/test/Admin@org1.example.com.key
 
 * MSP ID  
-  The correspoing MSP ID is `Org1MSP`
+  The corresponding MSP ID is `Org1MSP`
 
+And please find this chaincode (Go) example can be installed via Fablet page.
+* Tar file  
+  https://bctest01.fablet.pub:8081/test/vs_src.tar
+
+* Chaincode path  
+  The corresponding chaincode path is `fablet/vs`.
+  
+  
 *No more document for user now. I think that user should get all points from the UI directly, instead of documentation.*
 
 # Build
