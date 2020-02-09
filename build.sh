@@ -6,6 +6,7 @@ RELEASE_TARGET="./release/${OS_NAME}_${ARCH}"
 FABLET_BIN="fablet"
 GO_BUILD_CMD="go build"
 WEB_BUILD_CMD="yarn build"
+WEB_INSTALL_PKG_CMD="yarn install"
 WEB_SRC="./web"
 WEB_SRC_BUILD="${WEB_SRC}/build"
 WEB_TARGET="${RELEASE_TARGET}/web"
@@ -27,7 +28,7 @@ buildWeb() {
     echo "Compile Fablet web files."
     mkReleaseFolder
     rm -rf "${WEB_TARGET}"
-    cd "${WEB_SRC}" && ${WEB_BUILD_CMD} && cd .. && mv "${WEB_SRC_BUILD}" "${WEB_TARGET}"
+    cd "${WEB_SRC}" && ${WEB_INSTALL_PKG_CMD} && ${WEB_BUILD_CMD} && cd .. && mv "${WEB_SRC_BUILD}" "${WEB_TARGET}"
 }
 
 

@@ -18,20 +18,28 @@ export const getCurrVer = () => {
 
 export const getServiceURL = (path) => {
     // For dev service
-    return `${document.location.protocol}//${document.location.hostname}:8080${path}`;
+    // ${document.location.protocol}
+    // return `https://${document.location.hostname}:8080${path}`;
 
-    // TODO
-    // For prod
-    // return path;
+    // For prod    
+    let port = document.location.port;
+    if (port !== "") {
+        port = ":" + port;
+    }
+    return `${document.location.protocol}//${document.location.hostname}${port}${path}`;
 }
 
 export const getWebsocketURL = (path) => {
     // For dev service
-    return `ws://${document.location.hostname}:8080${path}`;
+    // return `wss://${document.location.hostname}:8080${path}`;
 
-    // TODO
     // For prod
-    // return path;
+    const wsProtocol = document.location.protocol.startsWith("https") ? "wss:" : "ws:";
+    let port = document.location.port;
+    if (port !== "") {
+        port = ":" + port;
+    }
+    return `${wsProtocol}//${document.location.hostname}${port}${path}`;
 }
 
 export const TIMEOUT_NETWORKOVERVIEW_UPDATE = 300000;

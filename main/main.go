@@ -47,8 +47,13 @@ func main() {
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, os.Interrupt, syscall.SIGTERM)
 
+	addr := flag.String("addr", "", "Listen on the TCP address (default all)")
 	port := flag.Int("port", DefaultSrvPort, "Listen on port")
+	cert := flag.String("cert", "", "TLS cert (default non-https)")
+	key := flag.String("key", "", "TLS key (default non-https)")
 	flag.Parse()
+
+	addrPort := fmt.Sprintf("%s:%d", *addr, *port)
 
 	for url, handler := range getHandlerMap() {
 		http.HandleFunc(url, handler)
@@ -56,12 +61,19 @@ func main() {
 	http.Handle("/", http.FileServer(http.Dir(filepath.Join(service.ExeFolder, "web"))))
 
 	go func() {
-		if err := http.ListenAndServe(fmt.Sprintf(":%d", *port), nil); err != nil {
+		var err error
+		if *cert != "" && *key != "" {
+			err = http.ListenAndServeTLS(addrPort, *cert, *key, nil)
+		} else {
+			err = http.ListenAndServe(addrPort, nil)
+		}
+		if err != nil {
 			logger.Error(err.Error())
+			s <- syscall.SIGTERM
 		}
 	}()
 
-	logger.Infof("Fablet server starts at %d.", *port)
+	logger.Infof("Fablet serve at %s.", addrPort)
 	<-s
 	logger.Info("Fablet server Exits.")
 }
