@@ -83,7 +83,7 @@ Please find this chaincode (Go) example can be installed via Fablet page.
 
 * Hyperledger Fabric 1.4.3  
   Currently, Fablet supports Fabric 1.4.3, we are working to adapt to 2.0.0. Please refer to Fabric installation document for details.  
-  *You can 
+  *You can use Fablet to connect to an existing Fabric blockchain network.
 
 ## Download repository
 

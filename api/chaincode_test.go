@@ -17,10 +17,11 @@ import (
 
 const (
 	chaincodeName = "vehiclesharing"
-	chaincodePath = "fablet/vehiclesharing"
+	chaincodePath = "fablet/vs"
 	gopath        = "../test/chaincodes/vehiclesharing"
 	// Chaincode path after 'src', and the Chaincode path will be also used for installation. See below.
 	// Gopath path before 'src'
+
 )
 
 // Refined.
@@ -41,6 +42,17 @@ func getRandCC() *Chaincode {
 	}
 }
 
+func getRandNodeCC() *Chaincode {
+	ccVersion := getRandomCCVersion()
+	ccName := "ccnode" + ccVersion
+	return &Chaincode{
+		Name:    ccName,
+		Version: ccVersion,
+		Path:    "../test/chaincodes/example02",
+		Type:    "node",
+	}
+}
+
 func TestInstallCCByAPI(t *testing.T) {
 	cc := getRandCC()
 	t.Log("Begin install chaincode: ", cc.Name, cc.Version)
@@ -55,6 +67,45 @@ func TestInstallCCByAPI(t *testing.T) {
 	for k, m := range res {
 		t.Log(k, m)
 	}
+}
+
+func TestCCPackageNode(t *testing.T) {
+	cc := getRandNodeCC()
+	t.Log("Begin install chaincode: ", cc.Name, cc.Version)
+	ccPkg, err := NewNodeCCPackage(cc.Path, cc.BasePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(ccPkg.Type.String())
+}
+
+func TestInstallAndInstantiateNodeCCByAPI(t *testing.T) {
+	cc := getRandNodeCC()
+	t.Log("Begin install chaincode: ", cc.Name, cc.Version)
+	conn, err := getConnectionSimple()
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := InstallChaincode(conn, cc, []string{target01})
+	if err != nil {
+		t.Log(err.Error())
+	}
+	for k, m := range res {
+		t.Log(k, m)
+	}
+
+	t.Log("Wait for 2 seconds.")
+	time.Sleep(time.Second * 2)
+
+	cc.Policy = "OR ('Org1MSP.peer','Org2MSP.peer')"
+	cc.Constructor = []string{"init", "a", "100", "b", "200"}
+	cc.ChannelID = mychannel
+
+	tid, err := InstantiateChaincode(conn, cc, target01, orderer)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("Succeed instantiate chaincode %s.", string(tid))
 }
 
 func TestInstallAndInstantiateCCByAPI(t *testing.T) {

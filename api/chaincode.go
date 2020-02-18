@@ -48,7 +48,14 @@ func InstallChaincode(conn *NetworkConnection, cc *Chaincode, targets []string) 
 		return nil, errors.New("no any targets to install chaincode")
 	}
 
-	ccPkg, err := packager.NewCCPackage(cc.Path, cc.BasePath)
+	var ccPkg *resource.CCPackage
+	var err error
+	if cc.Type == "golang" {
+		ccPkg, err = packager.NewCCPackage(cc.Path, cc.BasePath)
+	} else {
+		ccPkg, err = NewNodeCCPackage(cc.Path, cc.BasePath)
+	}
+
 	if err != nil {
 		return nil, errors.WithMessagef(err, "Error occurred when generating chaincode package of \"%s\"", cc.String())
 	}
