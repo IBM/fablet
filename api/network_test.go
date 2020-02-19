@@ -20,3 +20,23 @@ func TestNetwork(t *testing.T) {
 	defer conn.Close()
 	t.Log(conn.Show())
 }
+
+func TestQueryInstalledChaincodes(t *testing.T) {
+	conn, err := NewConnection(
+		&ConnectionProfile{connConfigPre, yamlConfigType},
+		&Participant{"TestAdmin", "", mspIDOrg1, testCert, testPrivKey, nil},
+		true,
+	)
+	if err != nil {
+		t.Fatal(errors.WithStack(err).Error())
+	}
+	defer conn.Close()
+
+	ccs, err := QueryInstalledChaincodes(conn, target01)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, cc := range ccs {
+		t.Log(cc)
+	}
+}

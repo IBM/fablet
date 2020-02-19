@@ -34,8 +34,13 @@ type Chaincode struct {
 	Constructor []string `json:"constructor"` // Arguments for instantiation
 	// For status. The chaincode might be instantiated (on channel) by not installed (on peer).
 	Installed bool `json:"installed"` // It might be false while channelID is not empty, since it is instantiated in channel but not installed in current peer.
-
 }
+
+const (
+	ChaincodeType_GOLANG = "golang"
+	ChaincodeType_NODE   = "node"
+	ChaincodeType_JAVA   = "java"
+)
 
 func (cc *Chaincode) String() string {
 	return fmt.Sprintf("%s:%s", cc.Name, cc.Version)
@@ -50,10 +55,14 @@ func InstallChaincode(conn *NetworkConnection, cc *Chaincode, targets []string) 
 
 	var ccPkg *resource.CCPackage
 	var err error
-	if cc.Type == "golang" {
+	if cc.Type == ChaincodeType_GOLANG {
 		ccPkg, err = packager.NewCCPackage(cc.Path, cc.BasePath)
+	} else if cc.Type == ChaincodeType_NODE {
+		ccPkg, err = NewNodeCCPackage(cc.Path)
+	} else if cc.Type == ChaincodeType_JAVA {
+		ccPkg, err = NewJavaCCPackage(cc.Path)
 	} else {
-		ccPkg, err = NewNodeCCPackage(cc.Path, cc.BasePath)
+		return nil, errors.Errorf("%s is not a valid chaincode type.", cc.Type)
 	}
 
 	if err != nil {

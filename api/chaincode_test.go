@@ -38,7 +38,7 @@ func getRandCC() *Chaincode {
 		Version:  ccVersion,
 		Path:     chaincodePath,
 		BasePath: gopath,
-		Type:     "golang",
+		Type:     ChaincodeType_GOLANG,
 	}
 }
 
@@ -48,8 +48,19 @@ func getRandNodeCC() *Chaincode {
 	return &Chaincode{
 		Name:    ccName,
 		Version: ccVersion,
-		Path:    "../test/chaincodes/example02",
-		Type:    "node",
+		Path:    "../test/chaincodes/example02node",
+		Type:    ChaincodeType_NODE,
+	}
+}
+
+func getRandJavaCC() *Chaincode {
+	ccVersion := getRandomCCVersion()
+	ccName := "ccjava" + ccVersion
+	return &Chaincode{
+		Name:    ccName,
+		Version: ccVersion,
+		Path:    "../test/chaincodes/example02java",
+		Type:    ChaincodeType_JAVA,
 	}
 }
 
@@ -72,7 +83,7 @@ func TestInstallCCByAPI(t *testing.T) {
 func TestCCPackageNode(t *testing.T) {
 	cc := getRandNodeCC()
 	t.Log("Begin install chaincode: ", cc.Name, cc.Version)
-	ccPkg, err := NewNodeCCPackage(cc.Path, cc.BasePath)
+	ccPkg, err := NewNodeCCPackage(cc.Path)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,6 +92,35 @@ func TestCCPackageNode(t *testing.T) {
 
 func TestInstallAndInstantiateNodeCCByAPI(t *testing.T) {
 	cc := getRandNodeCC()
+	t.Log("Begin install chaincode: ", cc.Name, cc.Version)
+	conn, err := getConnectionSimple()
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := InstallChaincode(conn, cc, []string{target01})
+	if err != nil {
+		t.Log(err.Error())
+	}
+	for k, m := range res {
+		t.Log(k, m)
+	}
+
+	t.Log("Wait for 2 seconds.")
+	time.Sleep(time.Second * 2)
+
+	cc.Policy = "OR ('Org1MSP.peer','Org2MSP.peer')"
+	cc.Constructor = []string{"init", "a", "100", "b", "200"}
+	cc.ChannelID = mychannel
+
+	tid, err := InstantiateChaincode(conn, cc, target01, orderer)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("Succeed instantiate chaincode %s.", string(tid))
+}
+
+func TestInstallAndInstantiateJavaCCByAPI(t *testing.T) {
+	cc := getRandJavaCC()
 	t.Log("Begin install chaincode: ", cc.Name, cc.Version)
 	conn, err := getConnectionSimple()
 	if err != nil {
@@ -143,7 +183,7 @@ func TestInstallAndUpgradeCCByAPI(t *testing.T) {
 		Version:  ccVersion,
 		Path:     chaincodePath,
 		BasePath: gopath,
-		Type:     "golang",
+		Type:     ChaincodeType_GOLANG,
 	}
 	t.Log("Begin install and upgrade chaincode: ", cc.Name, cc.Version)
 	conn, err := getConnectionSimple()

@@ -11,7 +11,7 @@ const (
 	// ConnMonitorInterval  to check the connection every interval.
 	ConnMonitorInterval = time.Second * 30
 	// ConnInactiveLongest  the connection will be closed and removed if be not actived for longer than the inactive time.
-	ConnInactiveLongest = time.Minute * 5
+	ConnInactiveLongest = time.Minute * 10
 )
 
 // ConnSession to store all connections.

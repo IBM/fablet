@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/pkg/errors"
 	"github.com/IBM/fablet/api"
 	"github.com/IBM/fablet/util"
+	"github.com/pkg/errors"
 )
 
 // ChaincodeInstallReq use fields instead of anonlymous fields, to have a more clear structure.
@@ -62,17 +62,24 @@ func HandleChaincodeInstall(res http.ResponseWriter, req *http.Request) {
 
 	logger.Debugf("Set temp folder %s", tmpFolder)
 
+	chaincode := &reqBody.Chaincode
+
 	// TODO to move this tar related to fablet api.
-	err = util.UnTar(reqBody.Chaincode.Package, tmpFolder)
+	err = util.UnTar(chaincode.Package, tmpFolder)
 	if err != nil {
 		ErrorOutput(res, req, RES_CODE_ERR_INTERNAL, errors.WithMessage(err, "Error occurred when uncompress the chaincode package."))
 		return
 	}
-	reqBody.Chaincode.BasePath = tmpFolder
 
-	logger.Debugf(fmt.Sprintf("Begin to install %s:%s", reqBody.Chaincode.Name, reqBody.Chaincode.Version))
+	if chaincode.Type == api.ChaincodeType_GOLANG {
+		chaincode.BasePath = tmpFolder
+	} else {
+		chaincode.Path = tmpFolder
+	}
+
+	logger.Debugf(fmt.Sprintf("Begin to install %s:%s", chaincode.Name, chaincode.Version))
 	// installRes length will always be identical to the peers length.
-	installRes, err := api.InstallChaincode(conn, &reqBody.Chaincode, reqBody.Targets)
+	installRes, err := api.InstallChaincode(conn, chaincode, reqBody.Targets)
 
 	if err != nil && installRes == nil {
 		ErrorOutput(res, req, RES_CODE_ERR_INTERNAL, errors.WithMessage(err, "Error occurred when installing the chaincode."))

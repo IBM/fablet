@@ -249,9 +249,16 @@ class ChaincodeInstall extends React.Component {
                                             width: 280
                                         }}
                                     >
-                                        <MenuItem value={"golang"} className={classes.formField}>Golang</MenuItem>
-                                        <MenuItem value={"node"} className={classes.formField}>Node</MenuItem>
-                                        <MenuItem value={"java"} className={classes.formField}>Java</MenuItem>
+                                        {
+                                            CONST.CHAINCODE_TYPES.map(ccType=> {
+                                                return (
+                                                    <MenuItem value={ccType} className={classes.formField} key={ccType}>
+                                                        {i18n(`chaincode_type_${ccType}`)}
+                                                    </MenuItem>
+                                                );
+                                            })
+                                        }
+                                        
                                     </Select>
                                 </FormControl>
                             </Grid>

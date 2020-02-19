@@ -300,7 +300,7 @@ class ChaincodeInstantiate extends React.Component {
 
                             <Grid item xs={4}>
                                 <FormControl className={classes.formControl}>
-                                    <InputLabel id="type_label">{i18n("channel")}</InputLabel>
+                                    <InputLabel id="channel_label">{i18n("channel")}</InputLabel>
                                     <Select
                                         fullWidth
                                         required
@@ -322,7 +322,7 @@ class ChaincodeInstantiate extends React.Component {
 
                             <Grid item xs={4}>
                                 <FormControl className={classes.formControl}>
-                                    <InputLabel id="type_label">{i18n("orderer")}</InputLabel>
+                                    <InputLabel id="orderer_label">{i18n("orderer")}</InputLabel>
                                     <Select
                                         fullWidth
                                         required

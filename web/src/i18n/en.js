@@ -83,6 +83,10 @@ const EN_TEXT = {
     chaincode_payload: "Chaincode payload",
     chaicode_peer_response: "Peer response",
 
+    chaincode_type_golang: "Golang",
+    chaincode_type_node: "Node",
+    chaincode_type_java: "Java",
+
     channel_operation: "Channel operation",
     channel_noany: "No channel joined yet",
     channel_join: "Join a channel",
