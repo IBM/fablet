@@ -3,8 +3,9 @@ package service
 import (
 	"net/http"
 
-	"github.com/pkg/errors"
 	"github.com/IBM/fablet/api"
+	"github.com/IBM/fablet/util"
+	"github.com/pkg/errors"
 )
 
 // NetworkDiscoverReq discover request
@@ -36,10 +37,40 @@ func HandleNetworkDiscover(res http.ResponseWriter, req *http.Request) {
 
 	ResultOutput(res, req, map[string]interface{}{
 		"peers":             networkOverview.Peers,
+		"peerStatuses":      transPeerStatuses(networkOverview.EndpointStatuses),
 		"channelLedgers":    networkOverview.ChannelLedgers,
 		"channelChaincodes": networkOverview.ChannelChainCodes,
 		"channelOrderers":   networkOverview.ChannelOrderers,
 	})
+}
+
+func transPeerStatuses(statuses map[string]util.EndPointStatus) map[string]api.PeerStatus {
+	transStatuses := map[string]api.PeerStatus{}
+
+	for peer, status := range statuses {
+		transStatus := api.PeerStatus{
+			Ping:  true,
+			GRPC:  true,
+			Valid: true,
+		}
+
+		if status != util.EndPointStatus_Valid {
+			transStatus.Valid = false
+			if status != util.EndPointStatus_Connectable {
+				if status == util.EndPointStatus_Refused {
+					transStatus.GRPC = false
+				} else {
+					// Not found or timeout
+					transStatus.GRPC = false
+					transStatus.Ping = false
+				}
+			}
+		}
+
+		transStatuses[peer] = transStatus
+	}
+
+	return transStatuses
 }
 
 // HandleNetworkRefresh to discover all network

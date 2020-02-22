@@ -66,54 +66,12 @@ func DiscoverNetworkOverview(conn *NetworkConnection, options ...DiscoverOptionF
 
 	return &NetworkOverview{
 		Peers:             peers,
+		EndpointStatuses:  conn.EndpointStatuses,
 		ChannelOrderers:   conn.ChannelOrderers,
 		ChannelLedgers:    conn.ChannelLedgers,
 		ChannelChainCodes: conn.ChannelChaincodes,
 	}, nil
 }
-
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-
-// DiscoverChannels to discover all channels via all endpoints from the config.
-// func DiscoverChannels(conn *NetworkConnection, options ...DiscoverOptionFunc) map[string]string {
-// 	// map[channelID]endpointURL
-// 	channelIDMap := make(map[string]string)
-
-// 	//opt := generateOption(options...)
-// 	// Get all channels.
-// 	// The network peers are corresponding to the config in yaml organizations/<org>/peers.
-// 	// They will be blank if no peers defined. But acutally all the peers can be found by discover service.
-// 	// TODO if the endpoint config is nil, that means the identity is not found, the error should be return.
-// 	if conn.Client.EndpointConfig() != nil {
-// 		for _, endpoint := range conn.Client.EndpointConfig().NetworkPeers() {
-// 			// It doesn't work now, since we still need to retrieve channels from the endpoint configured.
-// 			// if !opt.isTarget(endpoint.URL) {
-// 			// 	continue
-// 			// }
-
-// 			//if endpoint.MSPID == conn.Participant.MSPID
-// 			channels, err := GetJoinedChannels(conn, endpoint.URL, options...)
-// 			if err != nil {
-// 				logger.Errorf("Getting joined channels got failed for endpoint %s: %s", endpoint.URL, err.Error())
-// 				continue
-// 			}
-
-// 			// Only the first endpoint will be processed if they are duplicated.
-// 			// TODO to get and use all peers of the channel.
-// 			for _, channel := range channels {
-// 				if _, ok := channelIDMap[channel.GetChannelId()]; !ok {
-// 					channelIDMap[channel.GetChannelId()] = endpoint.URL
-// 				}
-// 			}
-// 		}
-// 	}
-
-// 	logger.Infof("Found channels and only corresponding endpoints %v.", channelIDMap)
-// 	return channelIDMap
-// }
 
 func generateOption(options ...DiscoverOptionFunc) *DiscoverOption {
 	disOpt := &DiscoverOption{}

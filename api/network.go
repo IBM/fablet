@@ -63,11 +63,16 @@ func NewConnection(connProfile *ConnectionProfile, participant *Participant, use
 	// TODO refresh connection frequence.
 	// TODO separated function for update.
 	if conn.UseDiscovery {
-		// Sequence sensitive
-		// TODO to handle the error all peer fail
 		conn.discoverNetwork()
+
+		// TODO condition causes error connection
+		//if err := conn.discoverNetwork(); err == nil {
 		conn.updateConnection()
+		//}
+		// If err is not nil, continue to construct connection, to return the configured peers.
 	}
+
+	// TODO below might occure peer connection error again.
 	conn.updateChannelLedgers()
 	conn.updateChannelOrderers()
 	conn.updateChannelChaincodes()
@@ -97,7 +102,7 @@ func (conn *NetworkConnection) initBaseNetwork() {
 	conn.Organizations = make(map[string]*Organization)
 	conn.Peers = make(map[string]*Peer)
 	conn.Orderers = make(map[string]*Orderer)
-	conn.PeerStatuses = make(map[string]*PeerStatus)
+	conn.EndpointStatuses = make(map[string]util.EndPointStatus)
 	conn.ChannelLedgers = make(map[string]*Ledger)
 	conn.ChannelChaincodes = make(map[string][]*Chaincode)
 	conn.ChannelOrderers = make(map[string][]*Orderer)
@@ -163,9 +168,11 @@ func (conn *NetworkConnection) initBaseNetwork() {
 }
 
 func (conn *NetworkConnection) discoverNetwork() error {
-	if err := conn.discoverChannels(); err != nil {
-		return err
-	}
+	// TODO condition causes error connection
+	// if err := conn.discoverChannels(); err != nil {
+	// 	return err
+	// }
+	conn.discoverChannels()
 
 	// Discover all peers per channel with corresponding configured endpoints.
 	for channelID, channel := range conn.Channels {
@@ -216,22 +223,14 @@ func (conn *NetworkConnection) discoverChannels() error {
 			if err != nil {
 				logger.Errorf("Getting joined channels got failed for endpoint %s: %s", peer.URL, err.Error())
 
-				// TODO to check ping and GRPC
-				conn.PeerStatuses[peer.Name] = &PeerStatus{
-					Ping:       true,
-					GRPC:       true,
-					Processing: false,
-				}
+				conn.EndpointStatuses[peer.Name] = util.GetEndpointStatus(peer.URL)
 				return
 			}
 
 			logger.Infof("Find joined channels %s for endpoint %s.", disChannels, peer.Name)
 
-			conn.PeerStatuses[peer.Name] = &PeerStatus{
-				Ping:       true,
-				GRPC:       true,
-				Processing: true,
-			}
+			// Connect fine
+			conn.EndpointStatuses[peer.Name] = util.EndPointStatus_Valid
 
 			for _, disChannel := range disChannels {
 				peer.Channels.Add(disChannel)
@@ -244,7 +243,7 @@ func (conn *NetworkConnection) discoverChannels() error {
 	wg.Wait()
 
 	for _, peer := range conn.Peers {
-		if conn.PeerStatuses[peer.Name].Processing {
+		if conn.EndpointStatuses[peer.Name] == util.EndPointStatus_Connectable {
 			// Any peer is fine
 			return nil
 		}
@@ -586,103 +585,6 @@ func QueryInstantiatedChaincodes(conn *NetworkConnection, channelID string) ([]*
 
 }
 
-///////////////////////////////////////////////
-// CognitiveUpdate to update the network connection by cognizing the netowrk.
-// func (conn *NetworkConnection) CognitiveUpdate() error {
-// 	channelIDMap := DiscoverChannels(conn)
-// 	if len(channelIDMap) <= 0 {
-// 		return errors.Errorf("Didn't find any channel.")
-// 	}
-// 	logger.Infof("Found channelID map: %v", channelIDMap)
-
-// 	occr := &OrdererConfigCognRes{
-// 		OrdererConfigs: make(map[string]fab.OrdererConfig),
-// 	}
-// 	cccr := &ChannelConfigCongnRes{
-// 		ChannelConfigs: make(map[string]fab.ChannelEndpointConfig),
-// 	}
-// 	cpcr := &ChannelPeerCongnRes{
-// 		ChannelPeersList: make(map[string][]fab.ChannelPeer),
-// 	}
-
-// 	// TODO the channelIDMap should store all peers, then fault tolerant, for networking or peer error.
-// 	for channelID, endpointURL := range channelIDMap {
-// 		logger.Infof("Cognize channel %s via endpoint %s.", channelID, endpointURL)
-
-// 		ctx := conn.Client
-// 		var client *discovery.Client
-// 		client, err := discovery.New(ctx)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		reqCtx, _ := context.NewRequest(ctx, context.WithTimeout(10*time.Second))
-// 		req := discovery.NewRequest().OfChannel(channelID).AddConfigQuery().AddPeersQuery()
-// 		peerCfg, err := comm.NetworkPeerConfig(ctx.EndpointConfig(), endpointURL)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		responses, err := client.Send(reqCtx, req, peerCfg.PeerConfig)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		resp := responses[0]
-// 		chanResp := resp.ForChannel(channelID)
-// 		cfg, err := chanResp.Config()
-// 		if err != nil {
-// 			return err
-// 		}
-// 		discPeers, err := chanResp.Peers()
-// 		endpoints := []string{}
-// 		for _, peer := range discPeers {
-// 			endpoints = append(endpoints, peer.AliveMessage.GetAliveMsg().GetMembership().GetEndpoint())
-// 		}
-
-// 		// TODO the Client.EndpointConfig() might be nil.
-// 		CognOrdererConfig(occr, cfg, conn.Client.EndpointConfig().NetworkConfig().Orderers)
-
-// 		// TODO cccr.ChannelConfig has already been in the first parameter cccr.
-// 		CognChannelConfig(cccr, channelID, endpoints, cccr.ChannelConfig(channelID))
-
-// 		// []fab.NetworkPeer need organizations/org/peers support
-// 		CognChannelPeers(cpcr, channelID, cccr.ChannelConfig(channelID), conn.Client.EndpointConfig().NetworkPeers())
-// 		// map[string]fab.PeerConfig donot need organizations/org/peers support, but no msp id
-// 		//CognChannelPeers(cpcr, channelID, cccr.ChannelConfig(channelID), conn.client.EndpointConfig().NetworkConfig().Peers)
-
-// 		// TODO if not cognitive network
-// 		// Add channel orderers
-// 		if conn.ChannelOrderers == nil {
-// 			conn.ChannelOrderers = make(map[string]map[string]fab.OrdererConfig)
-// 		}
-// 		conn.ChannelOrderers[channelID] = occr.OrdererConfigs
-// 	}
-
-// 	sdk, err := fabsdk.New(config.FromRaw(conn.ConnectionProfile.Config, conn.ConnectionProfile.ConfigType),
-// 		fabsdk.WithEndpointConfig(cpcr, cccr, occr))
-
-// 	if err != nil {
-// 		return err
-// 	}
-// 	signID, err := CreateSigningIdentity(sdk, conn.Participant)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	conn.Participant.SignID = signID
-// 	ctxProvider := sdk.Context(fabsdk.WithIdentity(signID))
-
-// 	ctx, err := ctxProvider()
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	// Close the old sdk connection.
-// 	conn.SDK.Close()
-
-// 	conn.SDK = sdk
-// 	conn.ClientProvider = ctxProvider
-// 	conn.Client = ctx
-// 	return nil
-// }
-
 // ConfiguredPeers return the configured peers of the network.
 func (conn *NetworkConnection) ConfiguredPeers() map[string]fab.PeerConfig {
 	return conn.Client.EndpointConfig().NetworkConfig().Peers
@@ -782,47 +684,9 @@ func (cpcr *ChannelPeerCongnRes) ChannelPeers(channelID string) []fab.ChannelPee
 	return peers
 }
 
-// func findNetworkPeer(networkPeers []fab.NetworkPeer, endpoint string) (*fab.NetworkPeer, bool) {
-// 	for _, networkPeer := range networkPeers {
-// 		if networkPeer.PeerConfig.URL == endpoint {
-// 			return &networkPeer, true
-// 		}
-// 	}
-// 	return nil, false
-// }
-
-// func findChannelPeer(channelPeers []fab.ChannelPeer, endpoint string) (*fab.ChannelPeer, bool) {
-// 	for _, channelPeer := range channelPeers {
-// 		if channelPeer.URL == endpoint {
-// 			return &channelPeer, true
-// 		}
-// 	}
-// 	return nil, false
-// }
-
 // CognChannelPeers overrides EndpointConfig's ChannelPeers function which returns the list of peers for the channel name arg
 // TODO to client config look to find the peer name in config.
 func (conn *NetworkConnection) updateChannelPeers(cpcr *ChannelPeerCongnRes) {
-	// channelPeerList := cpcr.ChannelPeers(channelID)
-	// for endpoint, peer := range cec.Peers {
-	// 	networkPeer, ok := findNetworkPeer(networkPeers, endpoint)
-	// 	if !ok {
-	// 		logger.Errorf("Cannot find configured network peer %s", endpoint)
-	// 		continue
-	// 	}
-	// 	_, ok = findChannelPeer(channelPeerList, endpoint)
-	// 	if ok {
-	// 		logger.Infof("Duplicated configured channel peer found: %s", endpoint)
-	// 		continue
-	// 	}
-	// 	channelPeerList = append(channelPeerList, fab.ChannelPeer{
-	// 		// No name for peer, only url.
-	// 		PeerChannelConfig: peer,
-	// 		NetworkPeer:       *networkPeer,
-	// 	})
-	// }
-	// cpcr.ChannelPeersList[strings.ToLower(channelID)] = channelPeerList
-	// logger.Infof("Cognize all %d peers in channel %s.", len(channelPeerList), channelID)
 	for channelID, channel := range conn.Channels {
 		channelPeers := []fab.ChannelPeer{}
 		for _, peerName := range channel.Peers.StringList() {

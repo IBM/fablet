@@ -61,7 +61,7 @@ class __DiscoverComp extends React.Component {
     constructor(props) {
         super(props);
         this.state = { ...props };
-        // peers, channelLedgers, channelOrderers, channelChaincodes
+        // peers, peerStatuses, channelLedgers, channelOrderers, channelChaincodes
 
         this.state.focusPeer = undefined;
 
@@ -110,7 +110,8 @@ class __DiscoverComp extends React.Component {
                                     {/* <Paper className={fixesdHeightPaper}> */}
                                     <PeerOverview key={peer.URL + peer.isFocus}
                                         peer={peer}
-                                        peers={this.state.peers}
+                                        peers={this.state.peers}                                        
+                                        peerStatuses={this.state.peerStatuses}
                                         channelLedgers={this.state.channelLedgers}
                                         channelOrderers={this.state.channelOrderers}
                                         channelChaincodes={this.state.channelChaincodes}
@@ -217,6 +218,7 @@ class Discover extends React.Component {
         if (this.state.resCode === 200) {
             return (<DiscoverComp key={"peers" + (this.state.peers || []).length}
                 peers={this.state.peers}
+                peerStatuses={this.state.peerStatuses}
                 channelLedgers={this.state.channelLedgers}
                 channelChaincodes={this.state.channelChaincodes}
                 channelOrderers={this.state.channelOrderers}

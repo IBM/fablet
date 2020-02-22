@@ -56,8 +56,11 @@ const styles = (theme) => ({
     normal: {
         fontSize: 13,
     },
-    running: {
+    peer_status_fine: {
         background: "#12C412",
+    },
+    peer_status_error: {
+        background: "#A12222",
     },
     timeFlag: {
         fontSize: 11,
@@ -92,7 +95,7 @@ class PeerOverview extends React.Component {
         super(props);
         this.state = {
             ...props,
-            // peer, peers, channelLedgers, channelOrderers, channelChaincodes
+            // peer, peers, peerStatuses, channelLedgers, channelOrderers, channelChaincodes
             // onFocus: props.onFocus
             // onLeaveFocus: props.onLeaveFocus
             // isFocus: props.isFocus
@@ -575,6 +578,17 @@ class PeerOverview extends React.Component {
             return ("Error! No peer result.");
         }
         const peer = this.state.peer;
+        let peerStatus = {
+            ping: true,
+            GRPC: true,
+            valid: true
+        };
+        for (let idx in this.state.peerStatuses) {
+            if (idx === peer.name) {
+                peerStatus = this.state.peerStatuses[idx];
+                break;
+            }
+        }
 
         var ccs = {};
         if (this.state.mergedCCs) {
@@ -693,8 +707,9 @@ class PeerOverview extends React.Component {
 
                     </CardContent>
                     <CardActions>
-                        <Chip color="primary" size="small" label="ping" className={classes.running} />
-                        <Chip color="primary" size="small" label="grpc" className={classes.running} />
+                        <Chip color="primary" size="small" label="ping" className={peerStatus.ping ? classes.peer_status_fine : classes.peer_status_error} />
+                        <Chip color="primary" size="small" label="grpc" className={peerStatus.GRPC ? classes.peer_status_fine : classes.peer_status_error} />
+                        <Chip color="primary" size="small" label="valid" className={peerStatus.valid ? classes.peer_status_fine : classes.peer_status_error} />
                         <Typography className={classes.timeFlag} style={{ marginLeft: "auto" }}>{this.timeLast(peer.updateTime)}</Typography>
                     </CardActions>
                 </Card>

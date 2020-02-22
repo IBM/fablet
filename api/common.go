@@ -86,13 +86,6 @@ type Channel struct {
 	Policies  *fab.ChannelPolicies `json:"policies"`
 }
 
-// PeerStatus peer status
-type PeerStatus struct {
-	Ping       bool `json:"ping"`
-	GRPC       bool `json:"GRPC"`
-	Processing bool `json:"processing"`
-}
-
 // NetworkConnection the entry to the Fabric network.
 // TODO to have lock for update, and a safe disconnection when update/close.
 type NetworkConnection struct {
@@ -117,7 +110,7 @@ type NetworkConnection struct {
 	Peers         map[string]*Peer
 	Orderers      map[string]*Orderer
 
-	PeerStatuses      map[string]*PeerStatus
+	EndpointStatuses  map[string]util.EndPointStatus
 	ChannelLedgers    map[string]*Ledger
 	ChannelChaincodes map[string][]*Chaincode
 	ChannelOrderers   map[string][]*Orderer
@@ -125,8 +118,16 @@ type NetworkConnection struct {
 
 // NetworkOverview for whole network
 type NetworkOverview struct {
-	Peers             []*Peer                 `json:"peers"`
-	ChannelOrderers   map[string][]*Orderer   `json:"channelOrderers"`
-	ChannelLedgers    map[string]*Ledger      `json:"channelLedgers"`
-	ChannelChainCodes map[string][]*Chaincode `json:"channelChaincodes"`
+	Peers             []*Peer                        `json:"peers"`
+	EndpointStatuses  map[string]util.EndPointStatus `json:"endpointStatuses"`
+	ChannelOrderers   map[string][]*Orderer          `json:"channelOrderers"`
+	ChannelLedgers    map[string]*Ledger             `json:"channelLedgers"`
+	ChannelChainCodes map[string][]*Chaincode        `json:"channelChaincodes"`
+}
+
+// PeerStatus peer status, corresponding to EndpointStatus
+type PeerStatus struct {
+	Ping  bool `json:"ping"`
+	GRPC  bool `json:"GRPC"`
+	Valid bool `json:"valid"`
 }
