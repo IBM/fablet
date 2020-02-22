@@ -49,4 +49,7 @@ export const RES_OK = 200;
 
 export const INITIAL_BLOCKS = 64;
 
-export const CHAINCODE_TYPES = ["golang", "node", "java"];
+export const CHAINCODE_TYPE_GOLANG = "golang";
+export const CHAINCODE_TYPE_NODE = "node";
+export const CHAINCODE_TYPE_JAVA = "java";
+export const CHAINCODE_TYPES = [CHAINCODE_TYPE_GOLANG, CHAINCODE_TYPE_NODE, CHAINCODE_TYPE_JAVA];

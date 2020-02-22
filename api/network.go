@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/IBM/fablet/util"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/errors/retry"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/fab"
@@ -19,7 +20,6 @@ import (
 	"github.com/hyperledger/fabric-sdk-go/pkg/fab/discovery"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
 	"github.com/pkg/errors"
-	"github.com/IBM/fablet/util"
 )
 
 // ConnectionProfile basic connection profile.
@@ -64,6 +64,7 @@ func NewConnection(connProfile *ConnectionProfile, participant *Participant, use
 	// TODO separated function for update.
 	if conn.UseDiscovery {
 		// Sequence sensitive
+		// TODO to handle the error all peer fail
 		conn.discoverNetwork()
 		conn.updateConnection()
 	}
@@ -96,7 +97,7 @@ func (conn *NetworkConnection) initBaseNetwork() {
 	conn.Organizations = make(map[string]*Organization)
 	conn.Peers = make(map[string]*Peer)
 	conn.Orderers = make(map[string]*Orderer)
-
+	conn.PeerStatuses = make(map[string]*PeerStatus)
 	conn.ChannelLedgers = make(map[string]*Ledger)
 	conn.ChannelChaincodes = make(map[string][]*Chaincode)
 	conn.ChannelOrderers = make(map[string][]*Orderer)
@@ -161,8 +162,10 @@ func (conn *NetworkConnection) initBaseNetwork() {
 	}
 }
 
-func (conn *NetworkConnection) discoverNetwork() {
-	conn.discoverChannels()
+func (conn *NetworkConnection) discoverNetwork() error {
+	if err := conn.discoverChannels(); err != nil {
+		return err
+	}
 
 	// Discover all peers per channel with corresponding configured endpoints.
 	for channelID, channel := range conn.Channels {
@@ -197,10 +200,12 @@ func (conn *NetworkConnection) discoverNetwork() {
 			}
 		}
 	}
+
+	return nil
 }
 
 // discoverChannels to discover all channels via all endpoints from the config.
-func (conn *NetworkConnection) discoverChannels() {
+func (conn *NetworkConnection) discoverChannels() error {
 	var wg sync.WaitGroup
 
 	for _, peer := range conn.Peers {
@@ -210,9 +215,23 @@ func (conn *NetworkConnection) discoverChannels() {
 			disChannels, err := getJoinedChannels(conn, peer.URL)
 			if err != nil {
 				logger.Errorf("Getting joined channels got failed for endpoint %s: %s", peer.URL, err.Error())
+
+				// TODO to check ping and GRPC
+				conn.PeerStatuses[peer.Name] = &PeerStatus{
+					Ping:       true,
+					GRPC:       true,
+					Processing: false,
+				}
 				return
 			}
+
 			logger.Infof("Find joined channels %s for endpoint %s.", disChannels, peer.Name)
+
+			conn.PeerStatuses[peer.Name] = &PeerStatus{
+				Ping:       true,
+				GRPC:       true,
+				Processing: true,
+			}
 
 			for _, disChannel := range disChannels {
 				peer.Channels.Add(disChannel)
@@ -223,6 +242,14 @@ func (conn *NetworkConnection) discoverChannels() {
 	}
 
 	wg.Wait()
+
+	for _, peer := range conn.Peers {
+		if conn.PeerStatuses[peer.Name].Processing {
+			// Any peer is fine
+			return nil
+		}
+	}
+	return errors.Errorf("Cannot get response from any peer.")
 }
 
 // The peer name is not strict, it might be peer url instead.
@@ -432,7 +459,9 @@ func (conn *NetworkConnection) Show() string {
 		buffer.WriteString("-------------------------------------\n")
 		buffer.WriteString(fmt.Sprintf("Peer name: %s\n", peerName))
 		buffer.WriteString(fmt.Sprintf("Peer: %s\n", peer.OrgName))
-		buffer.WriteString(fmt.Sprintf("Peer: %s\n", peer.TLSCACert.Subject.CommonName))
+		if peer.TLSCACert != nil {
+			buffer.WriteString(fmt.Sprintf("Peer: %s\n", peer.TLSCACert.Subject.CommonName))
+		}
 		buffer.WriteString(fmt.Sprintf("Peer: %s\n", peer.MSPID))
 		buffer.WriteString(fmt.Sprintf("Peer: %s\n", peer.URL))
 		buffer.WriteString(fmt.Sprintf("Peer: %v\n", peer.GRPCOptions))

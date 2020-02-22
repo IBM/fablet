@@ -10,7 +10,7 @@ import (
 
 func TestNetwork(t *testing.T) {
 	conn, err := NewConnection(
-		&ConnectionProfile{connConfigPre, yamlConfigType},
+		&ConnectionProfile{connConfig, yamlConfigType},
 		&Participant{"TestAdmin", "", mspIDOrg1, testCert, testPrivKey, nil},
 		true,
 	)
@@ -23,7 +23,7 @@ func TestNetwork(t *testing.T) {
 
 func TestQueryInstalledChaincodes(t *testing.T) {
 	conn, err := NewConnection(
-		&ConnectionProfile{connConfigPre, yamlConfigType},
+		&ConnectionProfile{connConfig, yamlConfigType},
 		&Participant{"TestAdmin", "", mspIDOrg1, testCert, testPrivKey, nil},
 		true,
 	)

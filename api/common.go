@@ -4,17 +4,18 @@ import (
 	"crypto/x509"
 	"time"
 
+	"github.com/IBM/fablet/log"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/context"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/fab"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
-	"github.com/IBM/fablet/log"
 
 	"github.com/IBM/fablet/util"
 )
 
 var logger = log.GetLogger()
 
-const DiscoverTimeOut = 10 * time.Second
+// DiscoverTimeOut timeout for discovery
+const DiscoverTimeOut = 30 * time.Second
 
 // ResultCode uint32
 type ResultCode uint32
@@ -85,6 +86,13 @@ type Channel struct {
 	Policies  *fab.ChannelPolicies `json:"policies"`
 }
 
+// PeerStatus peer status
+type PeerStatus struct {
+	Ping       bool `json:"ping"`
+	GRPC       bool `json:"GRPC"`
+	Processing bool `json:"processing"`
+}
+
 // NetworkConnection the entry to the Fabric network.
 // TODO to have lock for update, and a safe disconnection when update/close.
 type NetworkConnection struct {
@@ -109,6 +117,7 @@ type NetworkConnection struct {
 	Peers         map[string]*Peer
 	Orderers      map[string]*Orderer
 
+	PeerStatuses      map[string]*PeerStatus
 	ChannelLedgers    map[string]*Ledger
 	ChannelChaincodes map[string][]*Chaincode
 	ChannelOrderers   map[string][]*Orderer

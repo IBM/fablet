@@ -262,25 +262,31 @@ class ChaincodeInstall extends React.Component {
                                     </Select>
                                 </FormControl>
                             </Grid>
-
-                            <Grid item xs={3}>
-                                <TextField
-                                    fullWidth
-                                    label={i18n("chaincode_path")}
-                                    variant="outlined"
-                                    id="path"
-                                    name="path"
-                                    defaultValue={(this.state.ccInstallOption && this.state.ccInstallOption.path) || ""}
-                                    InputProps={{
-                                        classes: { input: classes.formField }
-                                    }}
-                                />
-                            </Grid>
-                            <Grid item xs={9}>
-                                <Typography display="block" color="textSecondary" className={classes.formField}>
-                                    {i18n("chaincode_path_remark")}
-                                </Typography>
-                            </Grid>
+                            
+                            {
+                                this.state.chaincodeType === CONST.CHAINCODE_TYPE_GOLANG ? (
+                                    <React.Fragment>
+                                        <Grid item xs={3}>
+                                            <TextField
+                                                fullWidth
+                                                label={i18n("chaincode_path")}
+                                                variant="outlined"
+                                                id="path"
+                                                name="path"
+                                                defaultValue={(this.state.ccInstallOption && this.state.ccInstallOption.path) || ""}
+                                                InputProps={{
+                                                    classes: { input: classes.formField }
+                                                }}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={9}>
+                                            <Typography display="block" color="textSecondary" className={classes.formField}>
+                                                {i18n("chaincode_path_remark")}
+                                            </Typography>
+                                        </Grid>
+                                    </React.Fragment>
+                                ) : null
+                            }
 
                             <Grid item xs={3}>
                                 <input

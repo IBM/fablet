@@ -74,6 +74,7 @@ func HandleChaincodeInstall(res http.ResponseWriter, req *http.Request) {
 	if chaincode.Type == api.ChaincodeType_GOLANG {
 		chaincode.BasePath = tmpFolder
 	} else {
+		// for Node and Java type chaincode
 		chaincode.Path = tmpFolder
 	}
 

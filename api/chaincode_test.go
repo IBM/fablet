@@ -97,7 +97,9 @@ func TestInstallAndInstantiateNodeCCByAPI(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	res, err := InstallChaincode(conn, cc, []string{target01})
+	defer conn.Close()
+	res, err := InstallChaincode(conn, cc, []string{target11})
+
 	if err != nil {
 		t.Log(err.Error())
 	}
@@ -106,13 +108,13 @@ func TestInstallAndInstantiateNodeCCByAPI(t *testing.T) {
 	}
 
 	t.Log("Wait for 2 seconds.")
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Second * 5)
 
 	cc.Policy = "OR ('Org1MSP.peer','Org2MSP.peer')"
 	cc.Constructor = []string{"init", "a", "100", "b", "200"}
 	cc.ChannelID = mychannel
 
-	tid, err := InstantiateChaincode(conn, cc, target01, orderer)
+	tid, err := InstantiateChaincode(conn, cc, target11, orderer)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -173,6 +175,13 @@ func TestInstallAndInstantiateCCByAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("Succeed instantiate chaincode %s.", string(tid))
+}
+
+func TestInstallAndInstantiateCCByAPIMultiple(t *testing.T) {
+	for i := 0; i < 10; i++ {
+		fmt.Printf("Installing %d\r\n", i)
+		TestInstallAndInstantiateCCByAPI(t)
+	}
 }
 
 func TestInstallAndUpgradeCCByAPI(t *testing.T) {

@@ -281,6 +281,7 @@ class ChaincodeInstantiate extends React.Component {
                                         classes: { input: classes.formField }
                                     }}
                                 />
+                                <FormHelperText id="component-helper-text">{i18n("chaincode_policy_remark")}</FormHelperText>
                             </Grid>
 
                             <Grid item xs={4}>
