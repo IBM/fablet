@@ -13,9 +13,9 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
-import TocIcon from '@material-ui/icons/Toc';
+import LaunchIcon from '@material-ui/icons/Launch';
 import CloseIcon from '@material-ui/icons/Close';
-import ViewHeadlineIcon from '@material-ui/icons/ViewHeadline';
+import MoreIcon from '@material-ui/icons/More';
 import Chip from '@material-ui/core/Chip';
 import i18n from '../../i18n';
 import ChaincodeInstall from "../chaincode/install";
@@ -623,7 +623,7 @@ class PeerOverview extends React.Component {
                         {!this.state.isFocus ?
                             (<Tooltip title={i18n("show_details")}>
                                 <IconButton aria-label={i18n("show_details")} size="small" style={{ marginLeft: "auto" }} onClick={this.state.onFocus}>
-                                    <TocIcon fontSize="inherit" color="primary" />
+                                    <LaunchIcon fontSize="inherit" color="primary" />
                                 </IconButton>
                             </Tooltip>)
                             :
@@ -667,7 +667,7 @@ class PeerOverview extends React.Component {
                                                     {chsStr}
                                                 </Typography>))
                                         }>
-                                            <ViewHeadlineIcon style={{ marginLeft: "auto" }} fontSize="inherit" color="primary" />
+                                            <MoreIcon style={{ marginLeft: "auto" }} fontSize="inherit" color="primary" />
                                         </HtmlTooltip>
                                     </Grid>
                                 </Grid>)}
@@ -700,7 +700,7 @@ class PeerOverview extends React.Component {
                                                     {ccsStr}
                                                 </Typography>))
                                         }>
-                                            <ViewHeadlineIcon style={{ marginLeft: "auto" }} fontSize="inherit" color="primary" />
+                                            <MoreIcon style={{ marginLeft: "auto" }} fontSize="inherit" color="primary" />
                                         </HtmlTooltip>
                                     </Grid>
                                 </Grid>)}

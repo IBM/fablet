@@ -135,6 +135,13 @@ It is developed in Go language, it provides web service, and html/js/image host.
   ```
   go run ./main
   ```
+* Test  
+  There are some testing programs in this project, before running those, you have to update connection profiles under folder `./test/connprofiles`.  
+  Basically the profiles are suitable for the `fabric-samples/first-network` example Fabric network. Please update the `tlsCACerts` section in the connection profiles with the certificates, an example is `fabric-samples/first-network/crypto-config/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem`.  
+
+  If you want to use your self Fabric blockchain network for testing purposes, please update `tlsCACerts` with the certificates accordinginly.  
+
+  These connection profiles can also be used to create connection to the Fabric blockchain network, via the Fablet web UI.  
 
 ## Web project
 Under folder `./web`.  

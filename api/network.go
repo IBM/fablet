@@ -469,6 +469,7 @@ func (conn *NetworkConnection) Show() string {
 		for channel, pcc := range peer.PeerChannelConfigs {
 			buffer.WriteString(fmt.Sprintf("Peer: channel %s %v\n", channel, pcc))
 		}
+		buffer.WriteString(fmt.Sprintf("Peer Status: %v\n", conn.EndpointStatuses[peer.Name]))
 	}
 
 	buffer.WriteString("================ Channel Orderers ================\n")
