@@ -1,3 +1,5 @@
+import * as ENV from "./env";
+
 export const __VER_0_1_0__ = "0.1.0";
 export const __CODE_MERCURY__ = "mercury";
 
@@ -16,29 +18,34 @@ export const getCurrVer = () => {
     }
 }
 
+
 export const getServiceURL = (path) => {
     // For dev service
-    return `http://${document.location.hostname}:8080${path}`;
+    if (ENV.DEBUG) {
+        return ENV.getDebugServiceURL(path);
+    }
 
-    // For prod    
-    // let port = document.location.port;
-    // if (port !== "") {
-    //     port = ":" + port;
-    // }
-    // return `${document.location.protocol}//${document.location.hostname}${port}${path}`;
+    // For prod
+    let port = document.location.port;
+    if (port !== "") {
+        port = ":" + port;
+    }
+    return `${document.location.protocol}//${document.location.hostname}${port}${path}`;
 }
 
 export const getWebsocketURL = (path) => {
     // For dev service
-    return `ws://${document.location.hostname}:8080${path}`;
+    if (ENV.DEBUG) {
+        return ENV.getDebugWebsocketURL(path);
+    }
 
     // For prod
-    // const wsProtocol = document.location.protocol.startsWith("https") ? "wss:" : "ws:";
-    // let port = document.location.port;
-    // if (port !== "") {
-    //     port = ":" + port;
-    // }
-    // return `${wsProtocol}//${document.location.hostname}${port}${path}`;
+    const wsProtocol = document.location.protocol.startsWith("https") ? "wss:" : "ws:";
+    let port = document.location.port;
+    if (port !== "") {
+        port = ":" + port;
+    }
+    return `${wsProtocol}//${document.location.hostname}${port}${path}`;
 }
 
 export const TIMEOUT_NETWORKOVERVIEW_UPDATE = 300000;

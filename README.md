@@ -3,12 +3,13 @@ Fablet is a client tools set for Hyperledger Fabric blockchain platform.
 It can help blockchain participants to connect to Fabric network, and perform operations of chaincode, channel, ledger...  
 
 # Playground
-An example Fablet service was set up with a Fabric network, you can try it via:  
+An example Fablet service was set up with a Fabric network, you can try it at:  
 https://bctest01.fablet.pub:8081/  
+*Due to the self-sign certificate, please accept the security exception in your browser.*
 
 ## Initial connection
 
-If it is the first time you access the service, you need to provices some materials to create the connectdion, we provides some examples corresponding to an example Fabric network (Fabric 1.4.3 first-network with 4 nodes, 5 etcdraft orderer nodes). Please download these accordinginly:  
+If it is the first time you access the service, you need to provices some materials to create the connectdion, we provides some examples corresponding to an example Fabric network (Fabric 1.4.3 first-network). Please download these accordinginly:  
 
 * Connection Profile  
   https://bctest01.fablet.pub:8081/test/conn_profile_simple.yaml
@@ -24,8 +25,6 @@ If it is the first time you access the service, you need to provices some materi
 
 ## Chaincode
 
-Please find this chaincode (Go) example can be installed via Fablet page.
-
 ### Installation
 *An exmaple chaincode `vsinst` has already been instantiated.*
 * Tar file  
@@ -33,6 +32,9 @@ Please find this chaincode (Go) example can be installed via Fablet page.
 
 * Chaincode path  
   The corresponding chaincode path is `fablet/vs`.
+
+* Another example Node chaincode package for Fablet. (Example02 from first-network)
+  https://bctest01.fablet.pub:8081/test/example02node_src.tar
 
 ### Instantiation
 *This is a lower machine, it might take several minutes...*
@@ -83,7 +85,8 @@ Please find this chaincode (Go) example can be installed via Fablet page.
 
 * Hyperledger Fabric 1.4.3  
   Currently, Fablet supports Fabric 1.4.3, we are working to adapt to 2.0.0. Please refer to Fabric installation document for details.  
-  *You can use Fablet to connect to an existing Fabric blockchain network.
+
+  *You can use Fablet to connect to an existing Fabric blockchain network.*
 
 ## Download repository
 
@@ -146,6 +149,10 @@ It is developed in Go language, it provides web service, and html/js/image host.
 ## Web project
 Under folder `./web`.  
 It is developed in Javascript with React.
+
+* Debug environment  
+  Please open `./web/src/common/env.js`, and then change const variable `DEBUG` to `true` in development.
+
 * Run in development
   ```
   yarn start
