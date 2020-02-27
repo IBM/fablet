@@ -2,6 +2,19 @@
 Fablet is a client tools set for Hyperledger Fabric blockchain platform.  
 It can help blockchain participants to connect to Fabric network, and perform operations of chaincode, channel, ledger...  
 
+### Peers list
+![Peers list](images/peerlist.png)
+<img src="images/peerlist.png" alt="Peers list" width="120 >
+
+### Chaincodes list
+![Chaincodes list](images/chaincodelist.png)
+
+### Invoke chaincode
+![Invoke chaincode](images/chaincodeinvoke.png)
+
+### Query ledger
+![Query ledger](images/ledgerquery.png)
+
 # Playground
 An example Fablet service was set up with a Fabric network, you can try it at:  
 https://bctest01.fablet.pub:8081/  
