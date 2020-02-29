@@ -167,7 +167,7 @@ class ChannelCreate extends React.Component {
                     <DialogContent>
                         <Grid container spacing={2}>
 
-                            <Grid item xs={6}>
+                            <Grid item xs={7}>
                                 <input
                                     required
                                     accept="*"
@@ -178,14 +178,16 @@ class ChannelCreate extends React.Component {
                                     style={{ display: "none" }}
                                 />
                                 <label htmlFor="txContent" display="inline">
-                                    <Button fullWidth variant="outlined" display="inline" component="span" className={classes.button}>
-                                        {i18n("channel_create_transaction")}
+                                    <Button fullWidth variant="contained" component="span" className={classes.button}>
+                                        {i18n("channel_create_transaction_upload")}
                                     </Button>
-                                    <Typography color="textSecondary" className={classes.formField}>{this.state.txContentFile}</Typography>
                                 </label>
                             </Grid>
+                            <Grid item xs={5}>
+                                <Typography color="textSecondary" className={classes.formField}>{this.state.txContentFile}</Typography>                             
+                            </Grid>
 
-                            <Grid item xs={4}>
+                            <Grid item xs={7}>
                                 <TextField
                                     fullWidth
                                     label={i18n("orderer")}
@@ -198,6 +200,9 @@ class ChannelCreate extends React.Component {
                                     }}
                                 />
                             </Grid>
+                            <Grid item xs={5}>                                
+                            </Grid>
+
                         </Grid>
                     </DialogContent>
                     <DialogActions>
@@ -226,7 +231,7 @@ class ChannelCreate extends React.Component {
                                         disabled={this.state.loading}>
                                         {i18n("create")}
                                     </Button>
-                                    &nbsp;
+                                    &nbsp;&nbsp;&nbsp;&nbsp;
                                     <Button
                                         onClick={this.handleCancel}
                                         variant="contained"

@@ -19,7 +19,6 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import { clientStorage } from "../data/localstore";
 import Profile from './network/profile';
 import Discover from "./network/discover";
-import ChaincodeInstall from "./chaincode/install";
 import { log } from "../common/log";
 
 function Copyright() {
@@ -241,8 +240,6 @@ class Main extends React.Component {
                                 connProfs.length > 0 && identities.length > 0 ? (
                                     <Switch>
                                         <Route key={1} path={"/"} exact={true} children={<Discover/>} />
-                                        <Route key={1} path={"/orders"} exact={true} children={<h2>orders</h2>} />
-                                        <Route key={1} path={"/chaincodeinstall"} exact={true} children={<ChaincodeInstall />} />
                                     </Switch>)
                                     :
                                     <div></div>

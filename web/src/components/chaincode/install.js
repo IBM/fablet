@@ -89,7 +89,7 @@ class ChaincodeInstall extends React.Component {
         fileReader.onload = (e) => {
             tempForm[fieldName] = {
                 path: f.name,
-                // Encode the binary content to bse64.
+                // Encode the binary content to base64.
                 content: btoa(e.target.result)
             };
 

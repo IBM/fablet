@@ -54,6 +54,10 @@ const EN_TEXT = {
     quick_view: "Quick view",
     previous_blocks: "Previous blocks",
 
+    delete: "Delete",
+    delete_confirmation: "Delete confirmation",
+    delete_confirmation_remark: "Do you want to delete this?",
+
     chaincode_name: "Chaincode name",
     chaincode_version: "Chaincode version",
     chaincode_package: "Chaincode package",
@@ -62,10 +66,10 @@ const EN_TEXT = {
     chaincode_install: "Install chaincode",
     chaincode_install_to: "You are going to install chaincode to peer %v",
     chaincode_install_no_result: "No chaincode install result.",
-    chaincode_package_remark: `Chaincode sourcecode package, now only .tar is supported. For Golang chaincode, it should include full package path.
-                                Please find the example <a href="/example/vsautoinst.tar">vsautoinst.tar</a>, and the corresponding 'Chaincode path is fablet/vsautoinst'`,
+    chaincode_package_remark: `Chaincode sourcecode package, now only .tar is supported. For Golang chaincode, it should include full package path and starts with src folder.
+                                Please find the example from document`,
     chaincode_path_remark: `It is the Golang type chaincode package's import path, it can be left as blank if the import path is blank.`,
-    chaincode_upload: "Upload chaincode...",
+    chaincode_upload: "Upload chaincode package...",
     chaincode_noany: "No any chaincodes installed",
     chaincode_instantiate: "Instantiate chaincode",
     chaincode_constructor:"Chaincode constructor arguments",
@@ -92,7 +96,7 @@ const EN_TEXT = {
     channel_noany: "No channel joined yet",
     channel_join: "Join a channel",
     channel_create: "Create a channel",
-    channel_create_transaction: "Transaction file of create channel",
+    channel_create_transaction_upload: "Upload transaction file (.tx) of creating channel...",
     
     block_event: "Block event",
     block_event_monitor: "Monitor",

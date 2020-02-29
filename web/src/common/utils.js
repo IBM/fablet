@@ -1,5 +1,8 @@
 import { clientStorage } from "../data/localstore";
 import i18n from '../i18n';
+import { log } from "./log";
+import requestPromise from "request-promise-native";
+import * as CONST from "./constants";
 
 const cntTrim = (str, len) => {
     if (!str) {
@@ -37,4 +40,46 @@ const fillOf2 = (v) => {
     return v < 10 ? '0' + v : v;
 }
 
-export { cntTrim, getCurrIDConn, outputServiceErrorResult, formatTime };
+
+const refreshNetwork = async () => {
+    const currIDConn = getCurrIDConn();
+    const reqBody = {
+        connection: currIDConn
+    };
+
+    let myHeaders = new Headers({
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    });
+
+    let option = {
+        url: CONST.getServiceURL("/network/refresh"),
+        method: 'POST',
+        headers: myHeaders,
+        json: true,
+        resolveWithFullResponse: true,
+        body: reqBody
+    };
+
+    log.debug("Refresh network.");
+
+    let result = await requestPromise(option);
+
+    if (result) {
+        result = result.body;
+        if (result.resCode === 200) {
+            window.location.reload();
+        }
+        else {
+            // this.setState({ executeError: result.resCode + ". " + result.errMsg });
+            log.error("Error: ", result.resCode, result.errMsg);
+        }
+    }
+    else {
+        // this.setState({ executeError: i18n("no_result_error") });
+        log.error("No result returned.")
+    }
+}
+
+
+export { cntTrim, getCurrIDConn, outputServiceErrorResult, formatTime, refreshNetwork };

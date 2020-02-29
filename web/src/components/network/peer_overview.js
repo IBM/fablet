@@ -24,7 +24,7 @@ import ChaincodeExecute from "../chaincode/execute";
 import ChannelCreate from "../channel/create";
 import ChannelJoin from "../channel/join";
 import LedgerDetail from "../ledger/detail";
-import { cntTrim, getCurrIDConn } from "../../common/utils";
+import { cntTrim, getCurrIDConn, refreshNetwork } from "../../common/utils";
 import { log } from "../../common/log";
 import * as CONST from "../../common/constants";
 
@@ -176,6 +176,7 @@ class PeerOverview extends React.Component {
 
         log.debug("Discover peer:", comp.state.peer.URL);
 
+        // TODO If the response with error, will cause a json error.
         fetch(request)
             .then(response => response.json())
             .then(result => {
@@ -773,7 +774,8 @@ class PeerOverview extends React.Component {
                         <ChannelJoin key={"channeljoin_" + this.state.openJoinChannel}
                             open={this.state.openJoinChannel}
                             onClose={this.handleCloseChannelJoin}
-                            callBack={this.discoverUpdate}
+                            // callBack={this.discoverUpdate}
+                            callBack={refreshNetwork}
                             channelJoinOption={this.state.channelJoinOption}
                         />
                     ) : null

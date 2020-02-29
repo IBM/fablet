@@ -471,7 +471,10 @@ class LedgerDetail extends React.Component {
         if (!blocks || blocks.length <= 0) {
             return;
         }
-        return blocks.reverse().concat(...(this.state.blocks));
+        const max = this.state.blocks.length > 0 ? this.state.blocks[0].number : -1;
+        return blocks.filter(b => b.number > max)
+                .reverse()
+                .concat(...(this.state.blocks));
     }
 
     async blocksUpdateWithRange(begin, len) {
