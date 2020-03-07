@@ -10,6 +10,7 @@ import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import Grid from '@material-ui/core/Grid';
+import Box from '@material-ui/core/Box';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Fade from '@material-ui/core/Fade';
@@ -101,6 +102,13 @@ class ChaincodeInstall extends React.Component {
         this.setState({ chaincodeType: event.target.value });
     }
 
+    getPkgFormat(path) {
+        if (path && path.endsWith("tar.gz")) {
+            return "tar.gz";
+        }
+        return "tar";
+    }
+
     handleSubmit(event) {
         event.preventDefault();
 
@@ -122,6 +130,7 @@ class ChaincodeInstall extends React.Component {
                 path: formData.get("path"),
                 package: tempForm["package"].content
             },
+            packageFormat: this.getPkgFormat(tempForm["package"].path),
             targets: [(this.state.ccInstallOption.target||{}).URL]
         }
 
@@ -266,7 +275,7 @@ class ChaincodeInstall extends React.Component {
                             {
                                 this.state.chaincodeType === CONST.CHAINCODE_TYPE_GOLANG ? (
                                     <React.Fragment>
-                                        <Grid item xs={3}>
+                                        <Grid item xs={4}>
                                             <TextField
                                                 fullWidth
                                                 label={i18n("chaincode_path")}
@@ -279,7 +288,7 @@ class ChaincodeInstall extends React.Component {
                                                 }}
                                             />
                                         </Grid>
-                                        <Grid item xs={9}>
+                                        <Grid item xs={8}>
                                             <Typography display="block" color="textSecondary" className={classes.formField}>
                                                 {i18n("chaincode_path_remark")}
                                             </Typography>
@@ -288,7 +297,7 @@ class ChaincodeInstall extends React.Component {
                                 ) : null
                             }
 
-                            <Grid item xs={3}>
+                            <Grid item xs={4}>
                                 <input
                                     required
                                     accept="*"
@@ -305,7 +314,7 @@ class ChaincodeInstall extends React.Component {
                                     <Typography color="textSecondary" className={classes.formField}>{this.state.packageFile}</Typography>
                                 </label>
                             </Grid>
-                            <Grid item xs={9}>
+                            <Grid item xs={8}>
                                 <Typography display="inline" color="textSecondary" className={classes.formField}>{i18n("chaincode_package_remark")}</Typography>
                             </Grid>
 
@@ -314,7 +323,7 @@ class ChaincodeInstall extends React.Component {
                     </DialogContent>
                     <DialogActions>
                         <Grid container spacing={2}>
-                            <Grid item xs={8}>
+                            <Grid item xs={9}>
                                 <Fade
                                     in={this.state.loading}
                                     style={{
@@ -328,24 +337,26 @@ class ChaincodeInstall extends React.Component {
                                 </Fade>
                                 <Typography color="error" style={{ marginRight: "auto", fontSize: 11 }}>{this.state.installError}</Typography>
                             </Grid>
-                            <Grid item xs={4}>
+                            <Grid item xs={3}>
+                                <Box display="flex" flexDirection="row-reverse">
+                                    <Button
+                                        type="submit"
+                                        autoFocus
+                                        variant="contained"
+                                        color="primary"
+                                        style={{ marginLeft: "auto" }}
+                                        disabled={this.state.loading}>
+                                        {i18n("install")}
+                                    </Button>
+                                    &nbsp;
                                 <Button
-                                    onClick={this.handleCancel}
-                                    variant="contained"
-                                    color="primary"
-                                    disabled={this.state.loading}>
-                                    {i18n("cancel")}
-                                </Button>
-                                &nbsp;
-                                <Button
-                                    type="submit"
-                                    autoFocus
-                                    variant="contained"
-                                    color="primary"
-                                    style={{ marginLeft: "auto" }}
-                                    disabled={this.state.loading}>
-                                    {i18n("chaincode_install")}
-                                </Button>
+                                        onClick={this.handleCancel}
+                                        variant="contained"
+                                        color="primary"
+                                        disabled={this.state.loading}>
+                                        {i18n("cancel")}
+                                    </Button>
+                                </Box>
                             </Grid>
                         </Grid>
                     </DialogActions>

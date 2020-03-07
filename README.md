@@ -3,16 +3,16 @@ Fablet is a client tools set for Hyperledger Fabric blockchain platform.
 It can help blockchain participants to connect to Fabric network, and perform operations of chaincode, channel, ledger...  
 
 ### Peers list
-![Peers list](images/peerlist.png)
+![Peers list](docs/images/peerlist.png)
 
 ### Chaincodes list
-![Chaincodes list](images/chaincodelist.png)
+![Chaincodes list](docs/images/chaincodelist.png)
 
 ### Invoke chaincode
-![Invoke chaincode](images/chaincodeinvoke.png)
+![Invoke chaincode](docs/images/chaincodeinvoke.png)
 
 ### Query ledger
-![Query ledger](images/ledgerquery.png)
+![Query ledger](docs/images/ledgerquery.png)
 
 # Playground
 An example Fablet service was set up with a Fabric network, you can try it at:  
@@ -21,7 +21,7 @@ https://bctest01.fablet.pub:8081/
 
 ## Initial connection
 
-If it is the first time you access the service, you need to provices some materials to create the connectdion, we provides some examples corresponding to an example Fabric network (Fabric 1.4.3 first-network). Please download these accordinginly:  
+If it is the first time you access the service, you need to create a connection profile and identity, we provide some examples corresponding to an example Fabric network (Fabric 1.4.3 first-network). Please download these accordinginly:  
 
 * Connection Profile  
   https://bctest01.fablet.pub:8081/test/conn_profile_simple.yaml
@@ -38,17 +38,26 @@ If it is the first time you access the service, you need to provices some materi
 ## Chaincode
 
 ### Installation
-*An exmaple chaincode `vsinst` has already been instantiated.*
+*An exmaple chaincode `vsinst` has already been instantiated.*  
+*And you can also install another chaincode instance with below packages.*
+*You can download the example package file and look into it for details.*
+
 * Tar file  
   https://bctest01.fablet.pub:8081/test/vs_src.tar
 
+* Tar.gz file (same with above but was compressed)  
+  https://bctest01.fablet.pub:8081/test/vs_src.tar.gz
+
 * Chaincode path  
-  The corresponding chaincode path is `fablet/vs`.
+  The corresponding chaincode path is `fablet/vs`.  
 
-* Another example Node chaincode package for Fablet. (Example02 from first-network)
-  https://bctest01.fablet.pub:8081/test/example02node_src.tar
+* Chaincode name and version  
+  Please input name and version. Example is `vehiclesharing` and `1.0`.  
 
-### Instantiation
+* *Another example Node chaincode package for Fablet. (Example02 from first-network)
+  https://bctest01.fablet.pub:8081/test/example02node_src.tar*
+
+### Instantiation 
 *This is a lower machine, it might take several minutes...*
 * Policy  
   ```
@@ -56,7 +65,7 @@ If it is the first time you access the service, you need to provices some materi
   ```
 
 * Constructor parameters  
-  Please leave it as blank.
+  For `vehiclesharing` example chaincode, please leave it as blank.
 
 ### Execution
 * Function name
@@ -163,7 +172,7 @@ Under folder `./web`.
 It is developed in Javascript with React.
 
 * Debug environment  
-  Please open `./web/src/common/env.js`, and then change const variable `DEBUG` to `true` in development.
+  Please open `./web/src/common/debugflag.js`, and then change const variable `DEBUG` to `true` in development.
 
 * Run in development
   ```

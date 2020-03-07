@@ -13,6 +13,11 @@ WEB_TARGET="${RELEASE_TARGET}/web"
 SERVICE="service"
 WEB="web"
 
+# From the WEB_SRC dir
+DEBUG_FLAG_DIR="./src/common"
+DEBUG_FLAG_FILE="${DEBUG_FLAG_DIR}/debugflag.js"
+DEBUG_FLAG_FILE_BAK="${DEBUG_FLAG_DIR}/debugflag.js.bak"
+
 mkReleaseFolder() {
     mkdir -p "${RELEASE_TARGET}"
 }
@@ -24,11 +29,31 @@ buildService() {
     ${GO_BUILD_CMD} -o "${RELEASE_TARGET}/${FABLET_BIN}" ${FABLET_PKG}
 }
 
+setDebugFlagFalse() {
+    rm -f ${DEBUG_FLAG_FILE_BAK}
+    mv ${DEBUG_FLAG_FILE} ${DEBUG_FLAG_FILE_BAK}
+    echo "export const DEBUG = false;" > ${DEBUG_FLAG_FILE}
+}
+
+setDebugFlagBack() {
+    if [[ -f "$DEBUG_FLAG_FILE_BAK" ]]; then
+        rm -f ${DEBUG_FLAG_FILE}
+        mv ${DEBUG_FLAG_FILE_BAK} ${DEBUG_FLAG_FILE}
+    fi
+}
+
 buildWeb() {
     echo "Compile Fablet web files."
     mkReleaseFolder
     rm -rf "${WEB_TARGET}"
-    cd "${WEB_SRC}" && ${WEB_INSTALL_PKG_CMD} && ${WEB_BUILD_CMD} && cd .. && mv "${WEB_SRC_BUILD}" "${WEB_TARGET}"
+    pushd "${WEB_SRC}" \
+        && ${WEB_INSTALL_PKG_CMD} \
+        && setDebugFlagFalse \
+        && ${WEB_BUILD_CMD} \
+        && setDebugFlagBack \
+        && popd \
+        && mv "${WEB_SRC_BUILD}" "${WEB_TARGET}"
+    
 }
 
 

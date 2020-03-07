@@ -3,27 +3,27 @@ package util
 import (
 	"archive/tar"
 	"bytes"
+	"compress/gzip"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 )
 
-func UnTar(source []byte, target string) error {
-	// Use file as source
-	// sourceFile, err := os.Open(source)
-	// if err != nil {
-	// 	return err
-	// }
-	// defer sourceFile.Close()
+const (
+	PackageFormat_TARGZ = "tar.gz"
+	PackageFormat_TAR   = "tar"
+)
 
-	// Use reader as source
-	sourceReader := bytes.NewReader(source)
-
-	// gzipReader, err := gzip.NewReader(sourceFile)
-	// if err != nil {
-	// 	return err
-	// }
+func UnTar(source []byte, packageFormat string, target string) error {
+	var sourceReader io.Reader = bytes.NewReader(source)
+	var err error
+	if packageFormat == PackageFormat_TARGZ {
+		sourceReader, err = gzip.NewReader(sourceReader)
+		if err != nil {
+			return err
+		}
+	}
 
 	tarReader := tar.NewReader(sourceReader)
 	for {

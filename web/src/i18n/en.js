@@ -66,9 +66,9 @@ const EN_TEXT = {
     chaincode_install: "Install chaincode",
     chaincode_install_to: "You are going to install chaincode to peer %v",
     chaincode_install_no_result: "No chaincode install result.",
-    chaincode_package_remark: `Chaincode sourcecode package, now only .tar is supported. For Golang chaincode, it should include full package path and starts with src folder.
-                                Please find the example from document`,
-    chaincode_path_remark: `It is the Golang type chaincode package's import path, it can be left as blank if the import path is blank.`,
+    chaincode_package_remark: "Chaincode sourcecode package, now only .tar and .tar.gz is supported. For Golang chaincode, " 
+                            + "it should include full package path and starts with src folder. Please find document for examples.",
+    chaincode_path_remark: "It is the Golang type chaincode package path, it can be left as blank if the Golang package path is blank. Please find document for examples.",
     chaincode_upload: "Upload chaincode package...",
     chaincode_noany: "No any chaincodes installed",
     chaincode_instantiate: "Instantiate chaincode",

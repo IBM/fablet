@@ -345,7 +345,7 @@ class ChaincodeInstantiate extends React.Component {
                     </DialogContent>
                     <DialogActions>
                         <Grid container spacing={2} alignItems="flex-end">
-                            <Grid item xs={7}>
+                            <Grid item xs={9}>
                                 <Fade
                                     in={this.state.loading}
                                     style={{
@@ -359,24 +359,24 @@ class ChaincodeInstantiate extends React.Component {
                                 </Fade>
                             </Grid>
 
-                            <Grid item xs={5}>
+                            <Grid item xs={3}>
                                 <Box display="flex" flexDirection="row-reverse">
                                     <Button
-                                        onClick={this.handleCancel}
-                                        variant="contained"
-                                        color="primary"
-                                        disabled={this.state.loading}>
-                                        {i18n("cancel")}
-                                    </Button>
-                                    &nbsp;
-                                <Button
                                         type="submit"
                                         autoFocus
                                         variant="contained"
                                         color="primary"
                                         style={{ marginLeft: "auto" }}
                                         disabled={this.state.loading}>
-                                        {i18n(this.state.ccInstantiateOption.existInstantiatedCC ? "chaincode_upgrade" : "chaincode_instantiate")}
+                                        {i18n(this.state.ccInstantiateOption.existInstantiatedCC ? "upgrade" : "instantiate")}
+                                    </Button>
+                                    &nbsp;
+                                    <Button
+                                        onClick={this.handleCancel}
+                                        variant="contained"
+                                        color="primary"
+                                        disabled={this.state.loading}>
+                                        {i18n("cancel")}
                                     </Button>
                                 </Box>
                             </Grid>

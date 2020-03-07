@@ -488,6 +488,16 @@ func (conn *NetworkConnection) Show() string {
 		buffer.WriteString(fmt.Sprintf("Channel name: %s\n", channelID))
 		buffer.WriteString(fmt.Sprintf("Ledger: %v\n", ledger))
 	}
+
+	buffer.WriteString("================ Channel Chaincodes ================\n")
+	for channelID, ccs := range conn.ChannelChaincodes {
+		buffer.WriteString("-------------------------------------\n")
+		buffer.WriteString(fmt.Sprintf("Channel name: %s\n", channelID))
+		for _, cc := range ccs {
+			buffer.WriteString(fmt.Sprintf("Chaincode: %s - %s\n", cc.Name, cc.Version))
+		}
+	}
+
 	return buffer.String()
 }
 

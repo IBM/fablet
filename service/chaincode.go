@@ -15,8 +15,9 @@ import (
 // ChaincodeInstallReq use fields instead of anonlymous fields, to have a more clear structure.
 type ChaincodeInstallReq struct {
 	BaseRequest
-	Chaincode api.Chaincode `json:"chaincode"`
-	Targets   []string      `json:"targets"`
+	Chaincode     api.Chaincode `json:"chaincode"`
+	PackageFormat string        `json:"packageFormat"`
+	Targets       []string      `json:"targets"`
 }
 
 // ChaincodeInstantiateReq for instantiate a chaincode.
@@ -65,7 +66,7 @@ func HandleChaincodeInstall(res http.ResponseWriter, req *http.Request) {
 	chaincode := &reqBody.Chaincode
 
 	// TODO to move this tar related to fablet api.
-	err = util.UnTar(chaincode.Package, tmpFolder)
+	err = util.UnTar(chaincode.Package, reqBody.PackageFormat, tmpFolder)
 	if err != nil {
 		ErrorOutput(res, req, RES_CODE_ERR_INTERNAL, errors.WithMessage(err, "Error occurred when uncompress the chaincode package."))
 		return
