@@ -2,6 +2,8 @@
 Fablet, a browser-based dashboard and tools set for Hyperledger Fabric blockchain platform.
 It can help blockchain participants to connect to Fabric network, and perform operations of chaincode, channel, ledger...  
 
+## Overview
+
 ### Peers list
 ![Peers list](docs/images/peerlist.png)
 
@@ -91,6 +93,27 @@ If it is the first time you access the service, you need to create a connection 
   
 *No more document for user now. I think that user should get all points from the UI directly, instead of documentation.*
 
+# Binaries  
+
+Fablet executable binary (based on Ubuntu 18.04) was built and can be downloaded from here: https://github.com/IBM/fablet/releases/download/v0.0.1/fablet_0.0.1.tar.gz
+
+## Start
+
+The build output will be found at ./release/<OS_Arch>/fablet.
+
+* Start Fablet as default with http on port 8080:
+  ```
+  ./release/<OS_Arch>/fablet
+  ```
+
+* Start Fablet with https on customized port 8081, and TCP address:  
+  ```
+  ./release/<OS_Arch>/fablet -addr localhost -port 8081 -cert <tls_cert> -key <tls_private_key>
+  ```
+
+When Fablet start, you can access it via browser (We tested it on Chrome and Firefox). For connection profile and identity encryption materials, please see section of 'Playground' for examples.
+
+
 # Build  
 
 *Now, building and development was only validated on Ubuntu 18.04.*
@@ -136,19 +159,7 @@ git clone https://github.com/IBM/fablet.git
 
 ## Start
 
-The build output will be found at ./release/<OS_Arch>/fablet.
-
-* Start Fablet as default with http on port 8080:
-  ```
-  ./release/<OS_Arch>/fablet
-  ```
-
-* Start Fablet with https on customized port 8081, and TCP address:  
-  ```
-  ./release/<OS_Arch>/fablet -addr localhost -port 8081 -cert <tls_cert> -key <tls_private_key>
-  ```
-
-When Fablet start, you can access it via browser (We tested it on Chrome and Firefox). For connection profile and identity encryption materials, please see section of 'Playground' for examples.
+Please find above section of 'Start' for details.
 
 # Development
 
