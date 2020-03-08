@@ -1,5 +1,5 @@
 # Fablet
-Fablet is a client tools set for Hyperledger Fabric blockchain platform.  
+Fablet, a browser-based dashboard and tools set for Hyperledger Fabric blockchain platform.
 It can help blockchain participants to connect to Fabric network, and perform operations of chaincode, channel, ledger...  
 
 ### Peers list
@@ -91,7 +91,9 @@ If it is the first time you access the service, you need to create a connection 
   
 *No more document for user now. I think that user should get all points from the UI directly, instead of documentation.*
 
-# Build
+# Build  
+
+*Now, building and development was only validated on Ubuntu 18.04.*
 
 ## Prerequisite 
 
