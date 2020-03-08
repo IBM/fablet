@@ -166,7 +166,7 @@ class Profile extends React.Component {
                         type="file"
                     />
                     <label htmlFor="connProfile">
-                        <Button variant="outlined" component="span" fullWidth>
+                        <Button variant="contained" component="span" fullWidth>
                             {i18n("connection_profile_upload")}
                         </Button>
                     </label>
@@ -230,7 +230,7 @@ class Profile extends React.Component {
                         type="file"
                     />
                     <label htmlFor="idCertificate">
-                        <Button variant="outlined" component="span" fullWidth>
+                        <Button variant="contained" component="span" fullWidth>
                             {i18n("id_certificate_upload")}
                         </Button>
                     </label>
@@ -250,7 +250,7 @@ class Profile extends React.Component {
                         type="file"
                     />
                     <label htmlFor="idPrivateKey">
-                        <Button variant="outlined" component="span" fullWidth>
+                        <Button variant="contained" component="span" fullWidth>
                             {i18n("id_private_key_upload")}
                         </Button>
                     </label>

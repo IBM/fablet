@@ -240,6 +240,7 @@ class Main extends React.Component {
                                 connProfs.length > 0 && identities.length > 0 ? (
                                     <Switch>
                                         <Route key={1} path={"/"} exact={true} children={<Discover/>} />
+                                        {/* <Route key={2} path={"/channels"} exact={true} children={<Channels/>} /> */}
                                     </Switch>)
                                     :
                                     <div></div>

@@ -308,7 +308,7 @@ class ChaincodeInstall extends React.Component {
                                     style={{ display: "none" }}
                                 />
                                 <label htmlFor="package" display="inline">
-                                    <Button fullWidth variant="outlined" display="inline" component="span" className={classes.button}>
+                                    <Button fullWidth variant="contained" display="inline" component="span" className={classes.button}>
                                         {i18n("chaincode_upload")}
                                     </Button>
                                     <Typography color="textSecondary" className={classes.formField}>{this.state.packageFile}</Typography>

@@ -21,7 +21,7 @@ export const mainListItems = (
             </ListItem>
         </Link>
 
-        {/* <Link to="/orders">
+        {/* <Link to="/channels">
             <ListItem button>
                 <ListItemIcon>
                     <DashboardIcon />
@@ -30,17 +30,7 @@ export const mainListItems = (
                     <Typography style={{ fontSize: 13 }}>{i18n("channel")}</Typography>
                 </ListItemText>
             </ListItem>
-        </Link>
-
-        <Link to="/chaincode">
-            <ListItem button>
-                <ListItemIcon>
-                    <LayersIcon />
-                </ListItemIcon>
-                <ListItemText >
-                    <Typography style={{ fontSize: 13 }}>{i18n("chaincode")}</Typography>
-                </ListItemText>
-            </ListItem>
         </Link> */}
+
     </div>
 );

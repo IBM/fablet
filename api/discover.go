@@ -57,6 +57,12 @@ func DiscoverNetworkOverview(conn *NetworkConnection, options ...DiscoverOptionF
 	for _, peer := range conn.Peers {
 		peers = append(peers, peer)
 	}
+
+	channels := []*Channel{}
+	for _, channel := range conn.Channels {
+		channels = append(channels, channel)
+	}
+
 	sort.SliceStable(peers, func(i, j int) bool {
 		if peers[i].MSPID != peers[j].MSPID {
 			return peers[i].MSPID < peers[j].MSPID
@@ -66,6 +72,7 @@ func DiscoverNetworkOverview(conn *NetworkConnection, options ...DiscoverOptionF
 
 	return &NetworkOverview{
 		Peers:              peers,
+		Channels:           channels,
 		EndpointStatuses:   conn.EndpointStatuses,
 		ChannelOrderers:    conn.ChannelOrderers,
 		ChannelLedgers:     conn.ChannelLedgers,

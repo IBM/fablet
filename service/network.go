@@ -37,12 +37,21 @@ func HandleNetworkDiscover(res http.ResponseWriter, req *http.Request) {
 
 	ResultOutput(res, req, map[string]interface{}{
 		"peers":              networkOverview.Peers,
+		"channels":           transChannels(networkOverview.Channels),
 		"peerStatuses":       transPeerStatuses(networkOverview.EndpointStatuses),
 		"channelLedgers":     networkOverview.ChannelLedgers,
 		"channelChaincodes":  networkOverview.ChannelChainCodes,
 		"channelOrderers":    networkOverview.ChannelOrderers,
 		"channelAnchorPeers": networkOverview.ChannelAnchorPeers,
 	})
+}
+
+func transChannels(channels []*api.Channel) []string {
+	channelIDs := []string{}
+	for _, channel := range channels {
+		channelIDs = append(channelIDs, channel.ChannelID)
+	}
+	return channelIDs
 }
 
 func transPeerStatuses(statuses map[string]util.EndPointStatus) map[string]api.PeerStatus {

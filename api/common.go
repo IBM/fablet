@@ -121,6 +121,7 @@ type NetworkConnection struct {
 // NetworkOverview for whole network
 type NetworkOverview struct {
 	Peers              []*Peer                        `json:"peers"`
+	Channels           []*Channel                     `json:"channels"`
 	EndpointStatuses   map[string]util.EndPointStatus `json:"endpointStatuses"`
 	ChannelOrderers    map[string][]*Orderer          `json:"channelOrderers"`
 	ChannelLedgers     map[string]*Ledger             `json:"channelLedgers"`
