@@ -8,7 +8,6 @@ import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
-import Tooltip from '@material-ui/core/Tooltip';
 import { log } from "../../common/log";
 import i18n from '../../i18n';
 import { clientStorage } from "../../data/localstore";
@@ -24,18 +23,13 @@ const styles = (theme) => ({
     hiddenInput: {
         display: 'none',
     },
+    selectedFile: {
+        fontSize: 13,
+        fontWeight: 600,
+        marginLeft: 10,
+        marginTop: 10
+    }
 });
-
-const HtmlTooltip = withStyles(theme => ({
-    tooltip: {
-        backgroundColor: '#f5f5f9',
-        color: 'rgba(0, 0, 0, 0.87)',
-        maxWidth: 500,
-        width: 350,
-        fontSize: theme.typography.pxToRem(12),
-        border: '1px solid #dadde9',
-    },
-}))(Tooltip);
 
 class Profile extends React.Component {
     constructor(props) {
@@ -83,10 +77,10 @@ class Profile extends React.Component {
                 path: f.name,
                 content: e.target.result
             };
-            
+
             const selectedFiles = this.state.selectedFiles;
             selectedFiles[fieldName] = f.name;
-            this.setState({ selectedFiles: selectedFiles});
+            this.setState({ selectedFiles: selectedFiles });
 
             log.info(this.state.selectedFiles);
             log.info(tempForm);
@@ -138,7 +132,7 @@ class Profile extends React.Component {
         }
 
         this.handleConfigured();
-        
+
         window.location.reload();
     }
 
@@ -154,7 +148,7 @@ class Profile extends React.Component {
                         : null
                 }
 
-                <Grid item xs={5}>                   
+                <Grid item xs={5}>
 
                     <input
                         required
@@ -170,26 +164,12 @@ class Profile extends React.Component {
                             {i18n("connection_profile_upload")}
                         </Button>
                     </label>
-
+                    <Typography className={classes.selectedFile} gutterBottom>{this.state.selectedFiles["connProfile"]}</Typography>
                 </Grid>
-
-                <Grid item xs={6}>
-                    <Typography className={classes.normalText} gutterBottom>{this.state.selectedFiles["connProfile"]}</Typography>
-                </Grid>
-
-                <Grid item xs={1}>
-                    <HtmlTooltip interactive title={
-                        (
-                            <Typography variant="body2" gutterBottom>
-                                {i18n("connection_profile_example")}
-                            </Typography>
-                        )
-                    }>
-                        <Typography className={classes.normalText}>{i18n("example")}...</Typography>
-                    </HtmlTooltip>
+                <Grid item xs={7}>
+                    <Typography className={classes.normalText}>{i18n("example_from_document")}</Typography>
                 </Grid>
             </Grid>
-
         );
     }
 
@@ -204,7 +184,7 @@ class Profile extends React.Component {
                         : null
                 }
                 <Grid item xs={5}>
-                    <TextField                        
+                    <TextField
                         label={i18n("msp_id")}
                         variant="outlined"
                         fullWidth
@@ -234,9 +214,10 @@ class Profile extends React.Component {
                             {i18n("id_certificate_upload")}
                         </Button>
                     </label>
+                    <Typography className={classes.selectedFile} gutterBottom>{this.state.selectedFiles["idCertificate"]}</Typography>
                 </Grid>
                 <Grid item xs={7}>
-                <Typography className={classes.normalText} gutterBottom>{this.state.selectedFiles["idCertificate"]}</Typography>
+                    <Typography className={classes.normalText}>{i18n("example_from_document")}</Typography>
                 </Grid>
 
                 <Grid item xs={5}>
@@ -254,69 +235,70 @@ class Profile extends React.Component {
                             {i18n("id_private_key_upload")}
                         </Button>
                     </label>
+                    <Typography className={classes.selectedFile} gutterBottom>{this.state.selectedFiles["idPrivateKey"]}</Typography>
                 </Grid>
                 <Grid item xs={7}>
-                <Typography className={classes.normalText} gutterBottom>{this.state.selectedFiles["idPrivateKey"]}</Typography>
+                    <Typography className={classes.normalText}>{i18n("example_from_document")}</Typography>
                 </Grid>
 
-                </Grid>);
-        }
-    
+            </Grid>);
+    }
+
     render() {
         const classes = this.props.classes;
-        
+
         return (
             <Dialog
-                    disableBackdropClick
-                    disableEscapeKeyDown
-                    maxWidth="md"
-                    fullWidth
-                    open={this.state.open}
-                    onClose={this.handleCancel}
-                >
-                    <DialogTitle id="dialog_title">{i18n("profile_setting")}</DialogTitle>
-                    <form onSubmit={this.handleSubmit}>
-                        <DialogContent>
-                            {
-                                this.state.needConnProf ? this.getConnectionProfileSetting(classes) : null
-                            }
-                        </DialogContent>
-                        <DialogContent>
-                            {
-                                this.state.needIdentity ? this.getIdentitySetting(classes) : null
-                            }
-                        </DialogContent>
-                        <DialogActions>
-                            <Grid
-                                container
-                                direction="row"
-                                justify="flex-end"
-                                alignItems="center"
-                            >
-                                <Grid>
-                                    <Button
-                                        onClick={this.handleCancel}
-                                        variant="contained"
-                                        color="primary"
-                                        disabled={this.state.loading}>
-                                        {i18n("cancel")}
-                                    </Button>
-                                    &nbsp;
+                disableBackdropClick
+                disableEscapeKeyDown
+                maxWidth="md"
+                fullWidth
+                open={this.state.open}
+                onClose={this.handleCancel}
+            >
+                <DialogTitle id="dialog_title">{i18n("profile_setting")}</DialogTitle>
+                <form onSubmit={this.handleSubmit}>
+                    <DialogContent>
+                        {
+                            this.state.needConnProf ? this.getConnectionProfileSetting(classes) : null
+                        }
+                    </DialogContent>
+                    <DialogContent>
+                        {
+                            this.state.needIdentity ? this.getIdentitySetting(classes) : null
+                        }
+                    </DialogContent>
+                    <DialogActions>
+                        <Grid
+                            container
+                            direction="row"
+                            justify="flex-end"
+                            alignItems="center"
+                        >
+                            <Grid>
                                 <Button
-                                        type="submit"
-                                        variant="contained"
-                                        color="primary"
-                                        style={{ marginLeft: "auto" }}
-                                        disabled={this.state.loading}>
-                                        {i18n("profile_setup")}
-                                    </Button>
-                                </Grid>
+                                    onClick={this.handleCancel}
+                                    variant="contained"
+                                    color="primary"
+                                    disabled={this.state.loading}>
+                                    {i18n("cancel")}
+                                </Button>
+                                &nbsp;
+                                <Button
+                                    type="submit"
+                                    variant="contained"
+                                    color="primary"
+                                    style={{ marginLeft: "auto" }}
+                                    disabled={this.state.loading}>
+                                    {i18n("profile_setup")}
+                                </Button>
                             </Grid>
-                        </DialogActions>
-                    </form>
-                </Dialog>
-                );
-            }
-        }
-        
+                        </Grid>
+                    </DialogActions>
+                </form>
+            </Dialog>
+        );
+    }
+}
+
 export default withStyles(styles)(Profile);

@@ -146,7 +146,7 @@ The build output will be found at ./release/<OS_Arch>/fablet.
   ./release/<OS_Arch>/fablet -addr localhost -port 8081 -cert <tls_cert> -key <tls_private_key>
   ```
 
-When Fablet start, you can access it via browser (We tested it on Chrome and Firefox).
+When Fablet start, you can access it via browser (We tested it on Chrome and Firefox). For connection profile and identity encryption materials, please see section of 'Playground' for examples.
 
 # Development
 
@@ -174,7 +174,13 @@ It is developed in Javascript with React.
 * Debug environment  
   Please open `./web/src/common/debugflag.js`, and then change const variable `DEBUG` to `true` in development.
 
+* Dependencies
+  ```
+  yarn install
+  ```
+
 * Run in development
   ```
   yarn start
   ```
+  Then open browser and access the default site: http://localhost:3000.
