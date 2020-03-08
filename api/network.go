@@ -76,6 +76,7 @@ func NewConnection(connProfile *ConnectionProfile, participant *Participant, use
 	conn.updateChannelLedgers()
 	conn.updateChannelOrderers()
 	conn.updateChannelChaincodes()
+	conn.updateChannelAnchors()
 
 	return conn, nil
 }
@@ -106,6 +107,7 @@ func (conn *NetworkConnection) initBaseNetwork() {
 	conn.ChannelLedgers = make(map[string]*Ledger)
 	conn.ChannelChaincodes = make(map[string][]*Chaincode)
 	conn.ChannelOrderers = make(map[string][]*Orderer)
+	conn.ChannelAnchorPeers = make(map[string][]string)
 
 	// Add all peers
 	for peerName, peerCfg := range conn.ConfiguredPeers() {
@@ -137,7 +139,11 @@ func (conn *NetworkConnection) initBaseNetwork() {
 
 	// Add all channels
 	for channelID, channelEndpointConfig := range conn.ConfiguredChannels() {
-		conn.Channels[channelID] = &Channel{ChannelID: channelID, Peers: util.NewSet(), Orderers: util.NewSet(), Policies: &channelEndpointConfig.Policies}
+		conn.Channels[channelID] = &Channel{ChannelID: channelID,
+			Peers:       util.NewSet(),
+			AnchorPeers: util.NewSet(),
+			Orderers:    util.NewSet(),
+			Policies:    &channelEndpointConfig.Policies}
 
 		for peerName, peerChannelConfig := range channelEndpointConfig.Peers {
 			conn.addChannelEndpoint(channelID, peerName)
@@ -289,7 +295,10 @@ func (conn *NetworkConnection) findOrderer(nameOrURL string) *Orderer {
 
 func (conn *NetworkConnection) addChannelEndpoint(channelID string, endpoint string) {
 	if channel, ok := conn.Channels[channelID]; !ok {
-		conn.Channels[channelID] = &Channel{ChannelID: channelID, Peers: util.NewSet(endpoint), Orderers: util.NewSet()}
+		conn.Channels[channelID] = &Channel{ChannelID: channelID,
+			Peers:       util.NewSet(endpoint),
+			AnchorPeers: util.NewSet(),
+			Orderers:    util.NewSet()}
 	} else if !channel.Peers.Exist(endpoint) && !channel.Peers.Exist(conn.findPeerName(endpoint)) {
 		channel.Peers.Add(endpoint)
 	}
@@ -297,7 +306,10 @@ func (conn *NetworkConnection) addChannelEndpoint(channelID string, endpoint str
 
 func (conn *NetworkConnection) addChannelOrderer(channelID string, orderer string) {
 	if channel, ok := conn.Channels[channelID]; !ok {
-		conn.Channels[channelID] = &Channel{ChannelID: channelID, Peers: util.NewSet(), Orderers: util.NewSet(orderer)}
+		conn.Channels[channelID] = &Channel{ChannelID: channelID,
+			Peers:       util.NewSet(),
+			AnchorPeers: util.NewSet(),
+			Orderers:    util.NewSet(orderer)}
 	} else if !channel.Orderers.Exist(orderer) && !channel.Orderers.Exist(conn.findOrdererName(orderer)) {
 		channel.Orderers.Add(orderer)
 	}
@@ -451,6 +463,7 @@ func (conn *NetworkConnection) Show() string {
 		buffer.WriteString(fmt.Sprintf("Channel peers: %s\n", channel.Peers.StringList()))
 		buffer.WriteString(fmt.Sprintf("Channel orderers: %s\n", channel.Orderers.StringList()))
 		buffer.WriteString(fmt.Sprintf("Channel policies: %v\n", channel.Policies))
+		buffer.WriteString(fmt.Sprintf("Channel Anchor Peers: %s\n", channel.AnchorPeers.StringList()))
 	}
 
 	buffer.WriteString("================ Peer ================\n")
@@ -498,6 +511,14 @@ func (conn *NetworkConnection) Show() string {
 		}
 	}
 
+	buffer.WriteString("================ Channel Anchor peers ================\n")
+	for channelID, peers := range conn.ChannelAnchorPeers {
+		buffer.WriteString("-------------------------------------\n")
+		buffer.WriteString(fmt.Sprintf("Channel name: %s\n", channelID))
+		for _, peer := range peers {
+			buffer.WriteString(fmt.Sprintf("Peer: %s\n", peer))
+		}
+	}
 	return buffer.String()
 }
 
@@ -679,6 +700,36 @@ func (conn *NetworkConnection) updateOrdererConfig(occr *OrdererConfigCognRes) {
 			TLSCACert: ord.TLSCACert,
 		}
 	}
+}
+
+// It should be performed after connection update.
+func (conn *NetworkConnection) updateChannelAnchors() error {
+	for channelID, channel := range conn.Channels {
+		ch, err := conn.SDK.ChannelContext(channelID, fabsdk.WithIdentity(conn.SignID))()
+		if err != nil {
+			return err
+		}
+		cfg, err := ch.ChannelService().ChannelConfig()
+		if err != nil {
+			return err
+		}
+		for _, peer := range cfg.AnchorPeers() {
+			channel.AnchorPeers.Add(fmt.Sprintf("%s:%d", peer.Host, peer.Port))
+		}
+
+		// Update connection ChannelAnchorPeers
+		if _, ok := conn.ChannelAnchorPeers[channelID]; !ok {
+			conn.ChannelAnchorPeers[channelID] = []string{}
+		}
+		for _, endpoint := range channel.AnchorPeers.StringList() {
+			peer := conn.findPeer(endpoint)
+			if peer != nil {
+				conn.ChannelAnchorPeers[channelID] = append(conn.ChannelAnchorPeers[channelID], peer.Name)
+			}
+		}
+
+	}
+	return nil
 }
 
 // ChannelPeerCongnRes option config interface, See fabric-sdk/go/pkg/fab/opts.go

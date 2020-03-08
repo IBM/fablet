@@ -80,10 +80,11 @@ type Organization struct {
 
 // Channel channel
 type Channel struct {
-	ChannelID string               `json:"channelID"`
-	Peers     util.Set             `json:"peers"`
-	Orderers  util.Set             `json:"orderers"`
-	Policies  *fab.ChannelPolicies `json:"policies"`
+	ChannelID   string               `json:"channelID"`
+	Peers       util.Set             `json:"peers"`
+	AnchorPeers util.Set             `json:"anchorPeers"`
+	Orderers    util.Set             `json:"orderers"`
+	Policies    *fab.ChannelPolicies `json:"policies"`
 }
 
 // NetworkConnection the entry to the Fabric network.
@@ -110,19 +111,21 @@ type NetworkConnection struct {
 	Peers         map[string]*Peer
 	Orderers      map[string]*Orderer
 
-	EndpointStatuses  map[string]util.EndPointStatus
-	ChannelLedgers    map[string]*Ledger
-	ChannelChaincodes map[string][]*Chaincode
-	ChannelOrderers   map[string][]*Orderer
+	EndpointStatuses   map[string]util.EndPointStatus
+	ChannelLedgers     map[string]*Ledger
+	ChannelChaincodes  map[string][]*Chaincode
+	ChannelOrderers    map[string][]*Orderer
+	ChannelAnchorPeers map[string][]string
 }
 
 // NetworkOverview for whole network
 type NetworkOverview struct {
-	Peers             []*Peer                        `json:"peers"`
-	EndpointStatuses  map[string]util.EndPointStatus `json:"endpointStatuses"`
-	ChannelOrderers   map[string][]*Orderer          `json:"channelOrderers"`
-	ChannelLedgers    map[string]*Ledger             `json:"channelLedgers"`
-	ChannelChainCodes map[string][]*Chaincode        `json:"channelChaincodes"`
+	Peers              []*Peer                        `json:"peers"`
+	EndpointStatuses   map[string]util.EndPointStatus `json:"endpointStatuses"`
+	ChannelOrderers    map[string][]*Orderer          `json:"channelOrderers"`
+	ChannelLedgers     map[string]*Ledger             `json:"channelLedgers"`
+	ChannelChainCodes  map[string][]*Chaincode        `json:"channelChaincodes"`
+	ChannelAnchorPeers map[string][]string            `json:"channelAnchorPeers"`
 }
 
 // PeerStatus peer status, corresponding to EndpointStatus

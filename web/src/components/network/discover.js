@@ -115,6 +115,7 @@ class __DiscoverComp extends React.Component {
                                         channelLedgers={this.state.channelLedgers}
                                         channelOrderers={this.state.channelOrderers}
                                         channelChaincodes={this.state.channelChaincodes}
+                                        channelAnchorPeers={this.state.channelAnchorPeers}
                                         onFocus={this.handleFocusPeer(peer)}
                                         onLeaveFocus={this.handleFocusPeer(undefined)}
                                         isFocus={peer.isFocus}
@@ -222,6 +223,7 @@ class Discover extends React.Component {
                 channelLedgers={this.state.channelLedgers}
                 channelChaincodes={this.state.channelChaincodes}
                 channelOrderers={this.state.channelOrderers}
+                channelAnchorPeers={this.state.channelAnchorPeers}
             />);
         }
         else {

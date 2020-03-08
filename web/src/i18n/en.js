@@ -113,6 +113,7 @@ const EN_TEXT = {
     response: "Response",
     isDelete: "Is delete",
     value: "Value",
+    anchor: "Anchor",
 
     proposal_response: "Proposal response",
     namespace: "Namespace",
@@ -139,6 +140,7 @@ const EN_TEXT = {
     block_action_of_all_actions: "Action %v of all %v",
     block_endorser_of_all_endorsers: "Endorser %v of all %v",
     block_query_any: "Block number, hash or transaction ID",
+    block_quantity: "Block quantity",
 
 
 }

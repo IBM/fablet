@@ -398,7 +398,7 @@ func translateBlock(block *common.Block) *Block {
 		PreviousHash: hex.EncodeToString(block.GetHeader().GetPreviousHash()),
 		BlockHash:    hex.EncodeToString(blockHash),
 		Transactions: transactions,
-		Time:         ch.GetTimestamp().GetSeconds()*1000 + int64(ch.GetTimestamp().GetNanos())/1000,
+		Time:         ch.GetTimestamp().GetSeconds()*1000 + int64(ch.GetTimestamp().GetNanos())/1000/1000,
 	}
 
 	return blk

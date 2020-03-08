@@ -22,8 +22,8 @@ class BlockEventChart {
             ...this.style.grid_lit,
             ...this.style.title_lit,
             animation: false,
-            xAxis: { type: "time", show: true },
-            yAxis: { show: true },
+            xAxis: { type: "time", show: true, name: i18n("block_time"), nameLocation: "end" },
+            yAxis: { show: true , name: i18n("block_quantity") },
             series: [
                 {
                     type: 'bar',

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"testing"
 )
 
@@ -35,13 +34,13 @@ func TestBlockLSCCAPI(t *testing.T) {
 
 	defer conn.Close()
 	///////////////////////////////////
-	t.Log(conn.Show())
 
-	blocks, err := QueryBlock(conn, "mychannel", []string{target01}, 10, 1)
+	blocks, err := QueryBlock(conn, "chtest1", []string{target01}, 0, 8)
 	if err != nil {
 		t.Fatal(err)
 	}
-	js, _ := json.Marshal(blocks[0])
-	t.Log(string(js))
+	for idx, block := range blocks {
+		t.Log(idx, block.Time)
+	}
 
 }

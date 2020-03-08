@@ -45,7 +45,8 @@ func HandleBlockEvent(wsConn *websocket.Conn) error {
 
 	eventChan := make(chan *fab.FilteredBlockEvent, 1)
 	closeChan := make(chan int, 1)
-	go api.MonitorBlockEvent(conn, reqBody.ChannelID, eventChan, closeChan)
+	eventCloseChan := make(chan int, 1)
+	go api.MonitorBlockEvent(conn, reqBody.ChannelID, eventChan, closeChan, eventCloseChan)
 
 	pingTicker := time.NewTicker(WSPingInterval)
 
@@ -67,6 +68,8 @@ func HandleBlockEvent(wsConn *websocket.Conn) error {
 			if event == nil {
 				return errors.Errorf("Event is nil")
 			}
+
+			// TODO In fact, we don't know the block time now.
 			blockEventRes := BlockEventResult{
 				Number:     event.FilteredBlock.GetNumber(),
 				TXNumber:   len(event.FilteredBlock.GetFilteredTransactions()),
@@ -88,6 +91,8 @@ func HandleBlockEvent(wsConn *websocket.Conn) error {
 			if err := wsConn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 				return errors.WithMessage(err, "Error of write websocket ping.")
 			}
+		case <-eventCloseChan:
+			return nil
 		}
 	}
 }

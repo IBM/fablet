@@ -77,6 +77,13 @@ const styles = (theme) => ({
         maxHeight: 450,
         overflow: 'auto',
     },
+    detailHeaderFocused: {
+        marginTop: 10,
+        marginBottom: 10
+    },
+    detailHeaderWidget: {
+        marginTop: 0,
+        marginBottom: 0}
 });
 
 const HtmlTooltip = withStyles(theme => ({
@@ -95,7 +102,7 @@ class PeerOverview extends React.Component {
         super(props);
         this.state = {
             ...props,
-            // peer, peers, peerStatuses, channelLedgers, channelOrderers, channelChaincodes
+            // peer, peers, peerStatuses, channelLedgers, channelOrderers, channelChaincodes, channelAnchorPeers
             // onFocus: props.onFocus
             // onLeaveFocus: props.onLeaveFocus
             // isFocus: props.isFocus
@@ -139,10 +146,23 @@ class PeerOverview extends React.Component {
         this.handleCloseChannelCreate = this.handleCloseChannelCreate.bind(this);
         this.handleCloseChannelJoin = this.handleCloseChannelJoin.bind(this);
 
-
         this.discoverUpdate = this.discoverUpdate.bind(this);
 
+        this.state.channelsAsAnchor = this.anchorChannels(this.state.peer, this.state.channelAnchorPeers);
+
         log.debug("PeerOverview: constructor");
+    }
+
+    anchorChannels(peer, anchorPeers) {
+        const channels = [];
+        for (var channel in anchorPeers) {
+            for (var idx in anchorPeers[channel]) {
+                if (anchorPeers[channel][idx] === peer.name || anchorPeers[channel][idx] === peer.URL) {
+                    channels.push(channel);
+                }
+            }
+        }
+        return channels;
     }
 
     discoverUpdate() {
@@ -558,7 +578,7 @@ class PeerOverview extends React.Component {
                             <TableCell component="th" scope="row">
                                 <Tooltip interactive title={ldg.currentBlockHash || ""}>
                                     <Typography noWrap className={classes.fieldDetail}>
-                                        {cntTrim(ldg.currentBlockHash, 20)}
+                                        {this.state.isFocus ? ldg.currentBlockHash : cntTrim(ldg.currentBlockHash, 20)}
                                     </Typography>
                                 </Tooltip>
                             </TableCell>
@@ -618,9 +638,15 @@ class PeerOverview extends React.Component {
             <React.Fragment>
                 <Card> {/* className={peer.isConnected ? classes.highLightCard : classes.card} */}
                     <CardActions>
-                        <Chip variant="outlined" color="primary" label="Peer" size="small" />
+                        <Chip variant="outlined" color="primary" label={i18n("peer")} size="small" />
                         <Chip variant="outlined" label={cntTrim(peer.MSPID, 20)} size="small" />
 
+                        {
+                            this.state.channelsAsAnchor && this.state.channelsAsAnchor.length > 0 ? (
+                                <Chip variant="outlined" label={i18n("anchor")} size="small" />
+                            ) : null
+                        }
+                        
                         {!this.state.isFocus ?
                             (<Tooltip title={i18n("show_details")}>
                                 <IconButton aria-label={i18n("show_details")} size="small" style={{ marginLeft: "auto" }} onClick={this.state.onFocus}>
@@ -639,10 +665,11 @@ class PeerOverview extends React.Component {
                         <Typography className={classes.title} noWrap>{peer.name}</Typography>
                         <Typography className={classes.normal} noWrap>{peer.URL}</Typography>
 
-                        <Typography display="inline" className={classes.title}>{i18n("channels")}</Typography>
-
-                        <Button size="small" color="primary" style={{ marginLeft: "auto" }} onClick={this.handleChannelCreate()}>+ {i18n("create")}</Button>
-                        <Button size="small" color="primary" style={{ marginLeft: "auto" }} onClick={this.handleChannelJoin(peer)}>+ {i18n("join")}</Button>
+                        <div className={this.state.isFocus ? classes.detailHeaderFocused : classes.detailHeaderWidget}>
+                            <Typography display="inline" className={classes.title}>{i18n("channels")}</Typography>
+                            <Button size="small" color="primary" style={{ marginLeft: "auto" }} onClick={this.handleChannelCreate()}>+ {i18n("create")}</Button>
+                            <Button size="small" color="primary" style={{ marginLeft: "auto" }} onClick={this.handleChannelJoin(peer)}>+ {i18n("join")}</Button>
+                        </div>
 
                         {this.state.isFocus ?
                             (
@@ -673,9 +700,10 @@ class PeerOverview extends React.Component {
                                     </Grid>
                                 </Grid>)}
 
-
-                        <Typography display="inline" className={classes.title}>{i18n("chaincodes")}</Typography>
-                        <Button size="small" color="primary" style={{ marginLeft: "auto" }} onClick={this.handleChaincodeInstall(this.state.peer)}>+ {i18n("install")}</Button>
+                        <div className={this.state.isFocus ? classes.detailHeaderFocused : classes.detailHeaderWidget}>
+                            <Typography display="inline" className={classes.title}>{i18n("chaincodes")}</Typography>
+                            <Button size="small" color="primary" style={{ marginLeft: "auto" }} onClick={this.handleChaincodeInstall(this.state.peer)}>+ {i18n("install")}</Button>
+                        </div>
 
                         {this.state.isFocus ?
                             (

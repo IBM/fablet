@@ -65,11 +65,12 @@ func DiscoverNetworkOverview(conn *NetworkConnection, options ...DiscoverOptionF
 	})
 
 	return &NetworkOverview{
-		Peers:             peers,
-		EndpointStatuses:  conn.EndpointStatuses,
-		ChannelOrderers:   conn.ChannelOrderers,
-		ChannelLedgers:    conn.ChannelLedgers,
-		ChannelChainCodes: conn.ChannelChaincodes,
+		Peers:              peers,
+		EndpointStatuses:   conn.EndpointStatuses,
+		ChannelOrderers:    conn.ChannelOrderers,
+		ChannelLedgers:     conn.ChannelLedgers,
+		ChannelChainCodes:  conn.ChannelChaincodes,
+		ChannelAnchorPeers: conn.ChannelAnchorPeers,
 	}, nil
 }
 

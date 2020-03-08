@@ -19,6 +19,7 @@ func TestNetwork(t *testing.T) {
 	}
 	defer conn.Close()
 	t.Log(conn.Show())
+
 }
 
 func TestQueryInstalledChaincodes(t *testing.T) {
