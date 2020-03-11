@@ -7,6 +7,7 @@ import Typography from "@material-ui/core/Typography";
 import { withStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import FormControl from '@material-ui/core/FormControl';
+import FormHelperText from '@material-ui/core/FormHelperText';
 import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
 import Table from '@material-ui/core/Table';
@@ -126,7 +127,7 @@ class ChaincodeExecute extends React.Component {
             actionType: this.state.ccExecuteOption.actionType,
             functionName: formData.get("functionName"),
             // TODO use comma now as temp coding
-            arguments: formData.get("arguments").split(","),
+            arguments: formData.get("arguments").split("\r\n"),
             targets: this.state.targets
         }
 
@@ -325,10 +326,13 @@ class ChaincodeExecute extends React.Component {
                                     variant="outlined"
                                     id="arguments"
                                     name="arguments"
+                                    multiline
+                                    rows="4"
                                     InputProps={{
                                         classes: { input: classes.formField }
                                     }}
                                 />
+                                <FormHelperText id="component-helper-text">{i18n("chaincode_constructor_remark")}</FormHelperText>
                             </Grid>
                         </Grid>
                     </DialogContent>

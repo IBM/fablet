@@ -285,18 +285,6 @@ class ChaincodeInstantiate extends React.Component {
                             </Grid>
 
                             <Grid item xs={4}>
-                                <TextField
-                                    fullWidth
-                                    label={i18n("chaincode_constructor")}
-                                    variant="outlined"
-                                    id="constructor"
-                                    name="constructor"
-                                    defaultValue={ccOption.constructor}
-                                    InputProps={{
-                                        classes: { input: classes.formField }
-                                    }}
-                                />
-                                <FormHelperText id="component-helper-text">{i18n("chaincode_constructor_remark")}</FormHelperText>
                             </Grid>
 
                             <Grid item xs={4}>
@@ -339,6 +327,26 @@ class ChaincodeInstantiate extends React.Component {
                                         }
                                     </Select>
                                 </FormControl>
+                            </Grid>
+
+                            <Grid item xs={4}>
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <TextField
+                                    fullWidth
+                                    label={i18n("chaincode_constructor")}
+                                    variant="outlined"
+                                    id="constructor"
+                                    name="constructor"
+                                    multiline
+                                    rows="4"
+                                    defaultValue={ccOption.constructor}
+                                    InputProps={{
+                                        classes: { input: classes.formField }
+                                    }}
+                                />
+                                <FormHelperText id="component-helper-text">{i18n("chaincode_constructor_remark")}</FormHelperText>
                             </Grid>
 
                         </Grid>
