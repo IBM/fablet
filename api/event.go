@@ -33,10 +33,18 @@ func MonitorBlockEvent(conn *NetworkConnection, channelID string,
 		eventCloseChan <- 0
 	}()
 
+	// TODO
+	// An easy way to pass the 'Newest' block from the event, otherwise, it always returns an event at beginning.
+	passedFirst := false
+
 	for {
 		select {
 		case event := <-notifier:
-			eventChan <- event
+			if passedFirst {
+				eventChan <- event
+			} else {
+				passedFirst = true
+			}
 		case <-closeChan:
 			return nil
 		}

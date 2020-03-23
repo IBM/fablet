@@ -66,20 +66,22 @@ func HandleBlockEvent(wsConn *websocket.Conn) error {
 				return errors.Errorf("Websocket connection is nil.")
 			}
 			if event == nil {
-				return errors.Errorf("Event is nil")
-			}
+				// Allow error
+				// return errors.Errorf("Event is nil")
+			} else {
+				// TODO In fact, we don't know the block time now.
+				blockEventRes := BlockEventResult{
+					Number:     event.FilteredBlock.GetNumber(),
+					TXNumber:   len(event.FilteredBlock.GetFilteredTransactions()),
+					UpdateTime: time.Now().UnixNano() / 1000000,
+					SourceURL:  event.SourceURL,
+				}
 
-			// TODO In fact, we don't know the block time now.
-			blockEventRes := BlockEventResult{
-				Number:     event.FilteredBlock.GetNumber(),
-				TXNumber:   len(event.FilteredBlock.GetFilteredTransactions()),
-				UpdateTime: time.Now().UnixNano() / 1000000,
-				SourceURL:  event.SourceURL,
-			}
-
-			resultJSON, _ := json.Marshal(blockEventRes)
-			if err := wsConn.WriteMessage(websocket.TextMessage, resultJSON); err != nil {
-				return errors.WithMessage(err, "Error of write event data.")
+				resultJSON, _ := json.Marshal(blockEventRes)
+				if err := wsConn.WriteMessage(websocket.TextMessage, resultJSON); err != nil {
+					// Allow error
+					// return errors.WithMessage(err, "Error of write event data.")
+				}
 			}
 		case <-pingTicker.C:
 			// logger.Debug("Ping................")
@@ -89,7 +91,8 @@ func HandleBlockEvent(wsConn *websocket.Conn) error {
 				return errors.Errorf("Websocket connection is nil.")
 			}
 			if err := wsConn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-				return errors.WithMessage(err, "Error of write websocket ping.")
+				// Alloow error
+				// return errors.WithMessage(err, "Error of write websocket ping.")
 			}
 		case <-eventCloseChan:
 			return nil

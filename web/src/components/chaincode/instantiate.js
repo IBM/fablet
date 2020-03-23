@@ -269,25 +269,6 @@ class ChaincodeInstantiate extends React.Component {
                             </Grid>
 
                             <Grid item xs={4}>
-                                <TextField
-                                    fullWidth
-                                    label={i18n("chaincode_policy")}
-                                    variant="outlined"
-                                    required
-                                    id="policy"
-                                    name="policy"
-                                    defaultValue={ccOption.policy}
-                                    InputProps={{
-                                        classes: { input: classes.formField }
-                                    }}
-                                />
-                                <FormHelperText id="component-helper-text">{i18n("chaincode_policy_remark")}</FormHelperText>
-                            </Grid>
-
-                            <Grid item xs={4}>
-                            </Grid>
-
-                            <Grid item xs={4}>
                                 <FormControl className={classes.formControl}>
                                     <InputLabel id="channel_label">{i18n("channel")}</InputLabel>
                                     <Select
@@ -329,10 +310,7 @@ class ChaincodeInstantiate extends React.Component {
                                 </FormControl>
                             </Grid>
 
-                            <Grid item xs={4}>
-                            </Grid>
-
-                            <Grid item xs={12}>
+                            <Grid item xs={6}>
                                 <TextField
                                     fullWidth
                                     label={i18n("chaincode_constructor")}
@@ -347,6 +325,24 @@ class ChaincodeInstantiate extends React.Component {
                                     }}
                                 />
                                 <FormHelperText id="component-helper-text">{i18n("chaincode_constructor_remark")}</FormHelperText>
+                            </Grid>
+
+                            <Grid item xs={6}>
+                                <TextField
+                                    fullWidth
+                                    label={i18n("chaincode_policy")}
+                                    variant="outlined"
+                                    required
+                                    id="policy"
+                                    name="policy"
+                                    multiline
+                                    rows="4"
+                                    defaultValue={ccOption.policy}
+                                    InputProps={{
+                                        classes: { input: classes.formField }
+                                    }}
+                                />
+                                <FormHelperText id="component-helper-text">{i18n("chaincode_policy_remark")}</FormHelperText>
                             </Grid>
 
                         </Grid>
