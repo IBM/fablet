@@ -49,8 +49,6 @@ func HandleChaincodeInstall(res http.ResponseWriter, req *http.Request) {
 		ErrorOutput(res, req, RES_CODE_ERR_INTERNAL, errors.WithMessage(err, "Error occurred when parsing from request."))
 		return
 	}
-	// TODO to hold on connection in session
-	// defer conn.Close()
 
 	// TODO remove tmp folder defer
 	tmpFolder := GetTmpFolder()
@@ -104,8 +102,6 @@ func HandleChaincodeInstantiate(res http.ResponseWriter, req *http.Request) {
 		ErrorOutput(res, req, RES_CODE_ERR_INTERNAL, errors.WithMessage(err, "Error occurred when parsing from request."))
 		return
 	}
-	// TODO to hold on connection in session
-	// defer conn.Close()
 
 	logger.Info(fmt.Sprintf("Begin to instantiate %s:%s", reqBody.Chaincode.Name, reqBody.Chaincode.Version))
 
@@ -152,8 +148,6 @@ func HandleChaincodeUpgrade(res http.ResponseWriter, req *http.Request) {
 		ErrorOutput(res, req, RES_CODE_ERR_INTERNAL, errors.WithMessage(err, "Error occurred when create Fablet connection."))
 		return
 	}
-
-	defer conn.Close()
 
 	logger.Info(fmt.Sprintf("Begin to upgrade %s:%s", reqBody.Chaincode.Name, reqBody.Chaincode.Version))
 
@@ -203,8 +197,6 @@ func HandleChaincodeExecute(res http.ResponseWriter, req *http.Request) {
 		ErrorOutput(res, req, RES_CODE_ERR_INTERNAL, errors.WithMessage(err, "Error occurred when parsing from request."))
 		return
 	}
-	// TODO to hold on connection in session
-	// defer conn.Close()
 
 	logger.Info(fmt.Sprintf("Begin to execute chaincode %s:%s", reqBody.Chaincode.Name, reqBody.Chaincode.Version))
 

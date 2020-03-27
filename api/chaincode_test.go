@@ -249,20 +249,21 @@ func TestExecuteCCRoutine(t *testing.T) {
 
 	//var wg sync.WaitGroup
 
-	for i := 0; i < 12; i++ {
+	for i := 0; i < 1; i++ {
 		//wg.Add(1)
 		go func(i int) {
-			fmt.Printf("Executing %d", i)
+			fmt.Printf("Executing %d\n", i)
 			//defer wg.Done()
 			for {
-				time.Sleep(time.Second * time.Duration(10*uint(rand.Float32())))
+				//updateVehiclePrice
+				time.Sleep(time.Second * time.Duration(rand.Int31n(5)))
 				r := getRandomCCVersion()
-				res, err := ExecuteChaincode(conn, mychannel, "vehiclesharing", ChaincodeOperTypeExecute,
+				res, err := ExecuteChaincode(conn, mychannel, vehiclesharing, ChaincodeOperTypeExecute,
 					[]string{target01}, "createVehicle", []string{"k_" + r, "b" + r})
 				if err != nil {
-					t.Fatal(err)
+					fmt.Println(err)
 				}
-				fmt.Println("Transaction ID:", res.TransactionID)
+				fmt.Println("Transaction ID: (createVehicle)", res.TransactionID)
 			}
 		}(i)
 	}
@@ -270,4 +271,40 @@ func TestExecuteCCRoutine(t *testing.T) {
 	time.Sleep(time.Second * 3600)
 
 	//wg.Wait()
+}
+
+func TestExecuteCCRoutineUpdate(t *testing.T) {
+	t.Log("Begin execute chaincode")
+	conn, _ := getConnectionSimple()
+
+	//var wg sync.WaitGroup
+
+	for i := 0; i < 1; i++ {
+		//wg.Add(1)
+		go func(i int) {
+			fmt.Printf("Executing %d\n", i)
+			//defer wg.Done()
+			for {
+				//updateVehiclePrice
+				time.Sleep(time.Second * time.Duration(rand.Int31n(5)))
+				res, err := ExecuteChaincode(conn, mychannel, vehiclesharing, ChaincodeOperTypeExecute,
+					[]string{target01}, "updateVehiclePrice", []string{"v001", "100"})
+				if err != nil {
+					fmt.Println(err)
+				}
+				fmt.Println("Transaction ID: (updateVehiclePrice)", res.TransactionID)
+			}
+		}(i)
+	}
+
+	time.Sleep(time.Second * 3600)
+
+	//wg.Wait()
+}
+
+func TestExecuteCCRoutine2Action(t *testing.T) {
+	go TestExecuteCCRoutine(t)
+	go TestExecuteCCRoutineUpdate(t)
+
+	time.Sleep(time.Second * 3600)
 }

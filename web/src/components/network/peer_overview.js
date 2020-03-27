@@ -194,16 +194,13 @@ class PeerOverview extends React.Component {
             body: JSON.stringify(reqBody),
         });
 
-        log.debug("Discover peer:", comp.state.peer.URL);
-
         // TODO If the response with error, will cause a json error.
         fetch(request)
             .then(response => response.json())
             .then(result => {
-                log.debug("Peer details result", result);
+                log.debug("Peer details result", comp.state.peer.URL, result);
                 if (comp.isRunning) {
                     if (result) {
-                        log.debug("Discover peer:", comp.state.peer.URL, ", found installed ", (result.installedChaincodes || []).length, "chaincodes.");
                         const mergedCCs = comp.mergeCCs(result.installedChaincodes, result.channelChaincodes);
                         comp.setState({
                             mergedCCs: mergedCCs,
@@ -392,8 +389,8 @@ class PeerOverview extends React.Component {
         for (var channelID in chanCCs) {
             for (var i in (chanCCs[channelID] || [])) {
                 const instantiatedCC = chanCCs[channelID][i];
-                const idx = this.findCCByName(instCCs, instantiatedCC);
-                if (idx < 0) {
+                const idxList = this.findAllCCsIdxByName(instCCs, instantiatedCC);
+                if (idxList.length <= 0) {
                     instantiatedCC.installed = false;
                     ccs.push(instantiatedCC);   // To install, 
                 }
@@ -401,23 +398,27 @@ class PeerOverview extends React.Component {
                     instantiatedCC.installed = true;
                     ccs.push(instantiatedCC);   // To query, execute
 
-                    const installedCC = instCCs[idx];
-                    instCCs[idx] = undefined;   // Remove what found
-                    if (instantiatedCC.version !== installedCC.version) {
-                        installedCC.instantiatedCC = instantiatedCC;
-                        ccs.push(installedCC);  // To upgrade
-                    }
+                    for (var j in idxList) {
+                        const idx = idxList[j];
+                        const installedCC = instCCs[idx];
+                        if (instantiatedCC.version !== installedCC.version) {
+                            installedCC.instantiatedCC = instantiatedCC;
+                            // ccs.push(installedCC);  // To upgrade
+                        }
+                        else {
+                            instCCs[idx] = undefined;   // Remove what found same name and version
+                        }                        
+                    }                    
                 }
             }
-
         }
-        // Add all installed remained.
+        // Add all installed remained, to instantiate
         instCCs.forEach(cc => {
             if (cc) {
-                const idx = this.findCCByName(ccs, cc);
-                if (idx >= 0 && ccs[idx].channelID) {
-                    cc.instantiatedCC = ccs[idx];
-                }
+                // const idx = this.findAllCCsIdxByName(ccs, cc);
+                // if (idx >= 0 && ccs[idx].channelID) {
+                //     cc.instantiatedCC = ccs[idx];
+                // }
                 ccs.push(cc);
             }
         });
@@ -451,16 +452,17 @@ class PeerOverview extends React.Component {
     //     return flatCCs;
     // }
 
-    findCCByName(ccList, cc) {
+    findAllCCsIdxByName(ccList, cc) {
+        const idxList = [];
         if (!ccList || !cc) {
-            return -1;
+            return idxList;
         }
         for (var idx in ccList) {
             if (ccList[idx] && ccList[idx].name === cc.name) {
-                return idx;
+                idxList.push(idx)
             }
         }
-        return -1;
+        return idxList;
     }
 
     getLedgerAction(channelID, target) {
@@ -477,6 +479,8 @@ class PeerOverview extends React.Component {
         var installAction = null;
         var instantiateAction = null;
 
+        // if (cc.installed && cc.channelID) {\
+        // Allow query/execute regardless of installed, user can switch target.
         if (cc.channelID) {
             executeAction = (
                 <React.Fragment>
@@ -491,7 +495,7 @@ class PeerOverview extends React.Component {
                 </React.Fragment>);
         }
 
-        // !installedCCQueryError means surely !installed
+        // Means surely !installed
         if (!this.state.installedCCQueryError && !cc.installed) {
             installAction = (
                 //name, version, path, policy, constructor, channelID, targetEndpoint, ordererEndpoint,

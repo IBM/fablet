@@ -1,3 +1,3 @@
 # MAINTAINERS
 
-Chun Lei Xu - xchunlei@cn.ibm.com
+Chun Lei (Tom) Xu - xchunlei@cn.ibm.com

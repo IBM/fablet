@@ -115,6 +115,7 @@ const EN_TEXT = {
     isDelete: "Is delete",
     value: "Value",
     anchor: "Anchor",
+    event: "Event",
 
     proposal_response: "Proposal response",
     namespace: "Namespace",

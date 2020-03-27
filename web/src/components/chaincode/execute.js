@@ -250,6 +250,7 @@ class ChaincodeExecute extends React.Component {
         }
 
         const classes = this.props.classes;
+        const isExecute = this.state.ccExecuteOption.actionType === "execute";
 
         return (
             <Dialog
@@ -260,7 +261,7 @@ class ChaincodeExecute extends React.Component {
                 open={this.state.open}
                 onClose={this.handleCancel}
             >
-                <DialogTitle id="dialog_title">{i18n(this.state.ccExecuteOption.actionType === "execute" ? "chaincode_execute" : "chaincode_query")}</DialogTitle>
+                <DialogTitle id="dialog_title">{i18n(isExecute ? "chaincode_execute" : "chaincode_query")}</DialogTitle>
                 <form onSubmit={this.handleSubmit}>
                     <DialogContent>
                         <Typography className={classes.formField}>
@@ -367,7 +368,7 @@ class ChaincodeExecute extends React.Component {
                                         color="primary"
                                         style={{ marginLeft: "auto" }}
                                         disabled={this.state.loading}>
-                                        {i18n("chaincode_execute")}
+                                        {i18n(isExecute ? "chaincode_execute" : "chaincode_query")}
                                     </Button>
                                     &nbsp;
                                     <Button

@@ -38,6 +38,7 @@ func getHandlerMap() map[string]service.HTTPHandler {
 		"/channel/create":        service.Post(service.HandleCreateChannel),
 		"/channel/join":          service.Post(service.HandleJoinChannel),
 		"/event/blockevent":      service.WS(service.HandleBlockEvent),
+		"/event/chaincodeevent":  service.WS(service.HandleChaincodeEvent),
 	}
 
 	return handlerMap

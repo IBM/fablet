@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/pkg/errors"
 	"github.com/IBM/fablet/api"
+	"github.com/pkg/errors"
 )
 
 // LedgerQueryReq to query a ledger
@@ -43,8 +43,6 @@ func HandleLedgerQuery(res http.ResponseWriter, req *http.Request) {
 		ErrorOutput(res, req, RES_CODE_ERR_INTERNAL, errors.WithMessage(err, "Error occurred when parsing from request."))
 		return
 	}
-	// TODO
-	// defer conn.Close()
 
 	logger.Info(fmt.Sprintf("Begin to query ledger at %v of channel %s", reqBody.Targets, reqBody.ChannelID))
 

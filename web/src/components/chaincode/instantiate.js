@@ -74,6 +74,8 @@ class ChaincodeInstantiate extends React.Component {
 
         this.state.orderersOfChannel = (ccOption.channelOrderers || {})[ccOption.channelID];
 
+        this.isUpgrade = !!ccOption.existInstantiatedCC;
+
         this.handleCancel = this.handleCancel.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleInstantiate = this.handleInstantiate.bind(this);
@@ -137,7 +139,7 @@ class ChaincodeInstantiate extends React.Component {
             },
             target: formData.get("target"),
             orderer: formData.get("orderer"),
-            isUpgrade: !!this.state.ccInstantiateOption.existInstantiatedCC
+            isUpgrade: this.isUpgrade
         };
 
         log.log("Instantiate chaincode: ", reqBody);
@@ -146,7 +148,7 @@ class ChaincodeInstantiate extends React.Component {
             'Accept': 'application/json',
             'Content-Type': 'application/octet-stream'
         });
-        let request = new Request(CONST.getServiceURL(this.state.ccInstantiateOption.existInstantiatedCC ? "/chaincode/upgrade" : "/chaincode/instantiate"), {
+        let request = new Request(CONST.getServiceURL(this.isUpgrade ? "/chaincode/upgrade" : "/chaincode/instantiate"), {
             method: 'POST',
             mode: 'cors',
             //credentials: 'include',
@@ -190,6 +192,7 @@ class ChaincodeInstantiate extends React.Component {
 
         const classes = this.props.classes;
         const ccOption = this.state.ccInstantiateOption;
+        const isUpgrade = this.isUpgrade;
 
         return (
             <Dialog
@@ -199,7 +202,7 @@ class ChaincodeInstantiate extends React.Component {
                 open={this.state.open}
                 onClose={this.handleCancel}
             >
-                <DialogTitle id="dialog_title">{i18n(ccOption.existInstantiatedCC ? "chaincode_upgrade" : "chaincode_instantiate")}</DialogTitle>
+                <DialogTitle id="dialog_title">{i18n(isUpgrade ? "upgrade" : "instantiate")}</DialogTitle>
                 <form onSubmit={this.handleSubmit}>
                     <DialogContent>
                         <Grid container spacing={2}>
@@ -276,10 +279,10 @@ class ChaincodeInstantiate extends React.Component {
                                         required
                                         id="channelID"
                                         name="channelID"
-                                        value={ccOption.channelID}
+                                        value={isUpgrade ? ccOption.existInstantiatedCC.channelID : ccOption.channelID}
                                         onChange={this.handleChangeChannelID}
                                         style={{ fontSize: 13, width: 280 }}
-                                        readOnly={!!ccOption.existInstantiatedCC}
+                                        readOnly={isUpgrade}
                                     >
                                         {
                                             (ccOption.peer.channels || []).map(chID => {
@@ -372,7 +375,7 @@ class ChaincodeInstantiate extends React.Component {
                                         color="primary"
                                         style={{ marginLeft: "auto" }}
                                         disabled={this.state.loading}>
-                                        {i18n(this.state.ccInstantiateOption.existInstantiatedCC ? "upgrade" : "instantiate")}
+                                        {i18n(isUpgrade ? "upgrade" : "instantiate")}
                                     </Button>
                                     &nbsp;
                                     <Button

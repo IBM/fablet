@@ -92,7 +92,7 @@ func (t *VehicleSharing) Invoke(stub shim.ChaincodeStubInterface) peer.Response 
 	if err == nil {
 		eventStr := fn + " ; " + strings.Join(args, " , ")
 		// Regardless of error
-		stub.SetEvent("vehiclesharing", []byte(eventStr))
+		stub.SetEvent("vsevent-"+fn, []byte(eventStr))
 
 		log.Printf("Invoke %s %s get succeed. Result: %s", fn, args, res)
 		return shim.Success([]byte(res))

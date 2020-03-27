@@ -6,9 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/fab"
-	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
 )
 
 func TestBlockEvent(t *testing.T) {
@@ -23,24 +21,38 @@ func TestBlockEvent(t *testing.T) {
 	eventCloseChan := make(chan int, 1)
 	go MonitorBlockEvent(conn, mychannel, eventChan, closeChan, eventCloseChan)
 
-	defer func() {
-		logger.Info("Event end")
-		closeChan <- 0
+	// Mock client termination.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	// Mock background goroutine of web service.
+	ctxBg, cancelBg := context.WithTimeout(context.Background(), time.Second*50)
+
+	go func() {
+		defer func() {
+			logger.Info("Event end")
+			closeChan <- 0
+			cancel()
+		}()
+
+		for {
+			select {
+			case event := <-eventChan:
+				logger.Debugf("Get an event from %s.", event.SourceURL)
+				if event == nil {
+					// return errors.Errorf("Event is nil")
+				} else {
+					fmt.Println(event.FilteredBlock.GetNumber())
+				}
+			case <-eventCloseChan:
+				return
+			case <-ctx.Done():
+				return
+			}
+		}
 	}()
 
-	for {
-		select {
-		case event := <-eventChan:
-			logger.Debugf("Get an event from %s.", event.SourceURL)
-			if event == nil {
-				// return errors.Errorf("Event is nil")
-			} else {
-				fmt.Println(event.FilteredBlock.GetNumber())
-			}
-		case <-eventCloseChan:
-			return
-		}
-	}
+	<-ctxBg.Done()
+	cancelBg()
+	logger.Debugf("Background context ends.")
 }
 
 func TestChaincodeEvent(t *testing.T) {
@@ -50,42 +62,40 @@ func TestChaincodeEvent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	channelContext := conn.SDK.ChannelContext("chtest1", fabsdk.WithIdentity(conn.SignID))
-	channelClient, err := channel.New(channelContext)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// eventClient, err := event.New(channelContext, event.WithBlockEvents(), event.WithSeekType(seek.Newest))
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	fmt.Println("Begin event...")
 
-	ccBlockEvent := func() {
-		fmt.Println(" ===================== chaincode event =======================")
-		reg, notifier, err := channelClient.RegisterChaincodeEvent("vseventtest", ".*")
+	eventChan := make(chan *fab.CCEvent, 1)
+	closeChan := make(chan int, 1)
+	eventCloseChan := make(chan int, 1)
 
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		defer channelClient.UnregisterChaincodeEvent(reg)
+	go MonitorChaincodeEvent(conn, mychannel, vehiclesharing, ".*(create|update).*", eventChan, closeChan, eventCloseChan)
+
+	go func() {
+		i := 0
 		for {
-			select {
-			case event := <-notifier:
-				fmt.Println(event.EventName, event.ChaincodeID, event.BlockNumber, event.SourceURL, string(event.Payload), event.TxID)
-			}
-			time.Sleep(time.Second * 2)
+			fmt.Println(i, " second ...")
+			time.Sleep(time.Second)
+			i++
+		}
+	}()
+
+	// Mock client termination.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*300)
+
+	defer func() {
+		logger.Info("Event end")
+		closeChan <- 0
+		cancel()
+	}()
+	for {
+		select {
+		case event := <-eventChan:
+			fmt.Println(event.BlockNumber, event.ChaincodeID, event.EventName, event.SourceURL, event.SourceURL, string(event.Payload))
+		case <-eventCloseChan:
+			return
+		case <-ctx.Done():
+			return
 		}
 	}
 
-	go ccBlockEvent()
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
-	defer cancel()
-
-	<-ctx.Done()
 }

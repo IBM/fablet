@@ -45,6 +45,7 @@ func (connSession *ConnSession) removeConn(id string) {
 	connSession.Lock()
 	defer connSession.Unlock()
 	if conn, ok := connSession.findConn(id); ok {
+		// TODO It might be not safe here, the conn might be in using.
 		conn.Close()
 		delete(connSession.Connections, id)
 	}

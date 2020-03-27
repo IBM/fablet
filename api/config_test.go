@@ -34,6 +34,7 @@ var orderer = "orderer.example.com:7050"
 var orderer2 = "orderer2.example.com:8050"
 
 var mychannel = "mychannel"
+var vehiclesharing = "vehiclesharing"
 
 func getOnlyFile(path string) string {
 	files, err := ioutil.ReadDir(path)
