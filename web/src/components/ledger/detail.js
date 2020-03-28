@@ -221,7 +221,7 @@ class LedgerDetail extends React.Component {
     }
 
     closeBlockEvent() {
-        // TODO the actual closing will happen after 60 seconds. Please see pong period example at gorilla/websocket.
+        // TODO the actual closing will happen after several seconds. Please see pong period example at gorilla/websocket.
         // It's better to use active pong from client to server, but make it easy now.
         if (this.websocket) {
             log.debug("Close websocket when quit.");
@@ -279,6 +279,7 @@ class LedgerDetail extends React.Component {
         // Normally won't be closed.
         detailPage.websocket.onclose = function (event) {
             log.debug(`Websocket connection closed, wasClean: ${event.wasClean}, code: ${event.code}, reason: ${event.reason}`);
+            // Recreate the connection, and it wil be discarded if it is not open.
             setTimeout(function () {
                 log.debug("Reconnect the websocket.");
                 detailPage.monitorBlockEvent(channelID);
@@ -799,7 +800,6 @@ class LedgerDetail extends React.Component {
                 fullWidth
                 style={{ maxHeight: window.screen.height * 0.9 }}
                 open={this.state.open}
-                onClose={this.handleFinished}
             >
                 <DialogTitle id="dialog_title">{i18n("ledger_query")}</DialogTitle>
                 <DialogContent>

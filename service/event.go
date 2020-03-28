@@ -42,6 +42,10 @@ type ChaincodeEventResult struct {
 	SourceURL   string `json:"sourceURL"`
 }
 
+type ErrorResult struct {
+	Error string `json:error`
+}
+
 const (
 	// WSPingInterval interval of ping
 	WSPingInterval = time.Second * 10
@@ -61,6 +65,20 @@ func HandleBlockEvent(wsConn *websocket.Conn) error {
 		return err
 	}
 
+	errChan := make(chan error, 1)
+	// Monitor the client connection.
+	go func() {
+		for {
+			logger.Debug("Begin to waiting for reading block event request")
+			if _, _, err := wsConn.ReadMessage(); err != nil {
+				// TODO To see if it err when client disconnected.
+				logger.Errorf("Reading block event reqeust with error: %s.", err.Error())
+				errChan <- err
+				return
+			}
+		}
+	}()
+
 	eventChan := make(chan *fab.FilteredBlockEvent, 1)
 	closeChan := make(chan int, 1)
 	eventCloseChan := make(chan int, 1)
@@ -68,6 +86,7 @@ func HandleBlockEvent(wsConn *websocket.Conn) error {
 
 	pingTicker := time.NewTicker(WSPingInterval)
 
+	// TODO defer in sequence
 	defer func() {
 		logger.Info("Service HandleBlockEvent end")
 		// TODO closeChan might be a little later, so then MonitorBlockEvent will ends a little later.
@@ -100,10 +119,11 @@ func HandleBlockEvent(wsConn *websocket.Conn) error {
 					return errors.WithMessage(err, "Error of write event data.")
 				}
 			}
+		case err := <-errChan:
+			return err
 		case <-pingTicker.C:
-			// logger.Debug("Ping................")
-			// wsConn.SetWriteDeadline(time.Now().Add(time.Second * 3))
-			// TODO ping is not enough, there always be 60 seconds later after connection close.
+			// TODO ping is not enough, there always be tens of seconds later after connection close.
+			// Places a reader might be better. See the chaincode event.
 			if wsConn == nil {
 				return errors.Errorf("Websocket connection is nil.")
 			}
@@ -119,22 +139,19 @@ func HandleBlockEvent(wsConn *websocket.Conn) error {
 // HandleChaincodeEvent handle event
 func HandleChaincodeEvent(wsConn *websocket.Conn) error {
 	logger.Info("Service HandleChaincodeEvent")
-	reqBody := &ChaincodeEventReq{}
-	if err := wsConn.ReadJSON(reqBody); err != nil {
-		return err
-	}
-	conn, err := getConnOfReq(reqBody.GetReqConn(), true)
-	if err != nil {
-		return err
-	}
+
+	listeners := 0
+
+	reqChan := make(chan *ChaincodeEventReq, 1)
+	errChan := make(chan error, 1)
 
 	eventChan := make(chan *fab.CCEvent, 1)
 	closeChan := make(chan int, 1)
-	eventCloseChan := make(chan int, 1)
-	go api.MonitorChaincodeEvent(conn, reqBody.ChannelID, reqBody.ChaincodeID, reqBody.EventFilter, eventChan, closeChan, eventCloseChan)
+	eventCloseChan := make(chan error, 1)
 
 	pingTicker := time.NewTicker(WSPingInterval)
 
+	// TODO defer in sequence
 	defer func() {
 		logger.Info("Service HandleChaincodeEvent end")
 		// TODO This should happen in context likes web service, then the event handler has chance to process closeChan.
@@ -142,8 +159,27 @@ func HandleChaincodeEvent(wsConn *websocket.Conn) error {
 		pingTicker.Stop()
 	}()
 
+	go readCCEventRequest(wsConn, reqChan, errChan)
+
 	for {
 		select {
+		case reqBody := <-reqChan:
+			logger.Debug("Received a reqBody and then begin a new event connection.")
+			conn, err := getConnOfReq(reqBody.GetReqConn(), true)
+			if err != nil {
+				return err
+			}
+
+			listeners++
+
+			// Close the existing event registration
+			if listeners > 1 {
+				closeChan <- 0
+			}
+
+			go api.MonitorChaincodeEvent(conn, reqBody.ChannelID, reqBody.ChaincodeID, reqBody.EventFilter, eventChan, closeChan, eventCloseChan)
+		case err := <-errChan:
+			return err
 		case event := <-eventChan:
 			logger.Debugf("Get a chaincode event from %s.", event.SourceURL)
 			// wsConn.SetWriteDeadline(time.Now().Add(WSWriteDeadline))
@@ -154,7 +190,6 @@ func HandleChaincodeEvent(wsConn *websocket.Conn) error {
 				// Allow error
 				// return errors.Errorf("Event is nil")
 			} else {
-				// TODO In fact, we don't know the block time now.
 				ccEventRes := ChaincodeEventResult{
 					TXID:        event.TxID,
 					ChaincodeID: event.ChaincodeID,
@@ -163,7 +198,6 @@ func HandleChaincodeEvent(wsConn *websocket.Conn) error {
 					BlockNumber: event.BlockNumber,
 					SourceURL:   event.SourceURL,
 				}
-
 				resultJSON, _ := json.Marshal(ccEventRes)
 				if err := wsConn.WriteMessage(websocket.TextMessage, resultJSON); err != nil {
 					return errors.WithMessage(err, "Error of write event data.")
@@ -176,11 +210,49 @@ func HandleChaincodeEvent(wsConn *websocket.Conn) error {
 			if wsConn == nil {
 				return errors.Errorf("Websocket connection is nil.")
 			}
+			// wsConn.SetWriteDeadline(time.Now().Add(WSWriteDeadline))
 			if err := wsConn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 				return errors.WithMessage(err, "Error of write websocket ping.")
 			}
 		case <-eventCloseChan:
-			return nil
+			// TODO It doesn't work yet - to use eventCloseChan to pass the error in API.
+
+			// The error need to be handled by frontend, since the chaincode event filter might be changed.
+			// Althought the block event don't need to to do this.
+			// Anyway, the eventCloseChan might with error or nil.
+			// if err != nil {
+			// 	logger.Error("Chaincode event listener return error: %s.", err.Error())
+			// 	errRes := ErrorResult{
+			// 		Error: err.Error(),
+			// 	}
+			// 	resultJSON, _ := json.Marshal(errRes)
+			// 	if msgErr := wsConn.WriteMessage(websocket.TextMessage, resultJSON); msgErr != nil {
+			// 		return errors.WithMessage(err, "Error of write event data.")
+			// 	}
+			// }
+
+			listeners--
+			if listeners <= 0 {
+				return nil
+			}
 		}
+	}
+
+}
+
+func readCCEventRequest(wsConn *websocket.Conn, reqChan chan *ChaincodeEventReq, errChan chan error) {
+	for {
+		logger.Debug("Begin to waiting for reading chaincode event request")
+		reqBody := &ChaincodeEventReq{}
+
+		if err := wsConn.ReadJSON(reqBody); err != nil {
+			// TODO To see if it err when client disconnected.
+			logger.Errorf("Reading chaincode event reqeust with error: %s.", err.Error())
+			errChan <- err
+			return
+		}
+
+		logger.Errorf("Reading chaincode event reqeust: %s %s %s.", reqBody.ChannelID, reqBody.ChaincodeID, reqBody.EventFilter)
+		reqChan <- reqBody
 	}
 }

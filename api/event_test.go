@@ -66,7 +66,7 @@ func TestChaincodeEvent(t *testing.T) {
 
 	eventChan := make(chan *fab.CCEvent, 1)
 	closeChan := make(chan int, 1)
-	eventCloseChan := make(chan int, 1)
+	eventCloseChan := make(chan error, 1)
 
 	go MonitorChaincodeEvent(conn, mychannel, vehiclesharing, ".*(create|update).*", eventChan, closeChan, eventCloseChan)
 

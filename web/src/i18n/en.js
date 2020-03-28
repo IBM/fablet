@@ -93,6 +93,9 @@ const EN_TEXT = {
     chaincode_type_node: "Node",
     chaincode_type_java: "Java",
 
+    chaincode_event: "Chaincode event",
+    chaincode_event_filter: "Chaincode event filter",
+
     channel_operation: "Channel operation",
     channel_noany: "No channel joined yet",
     channel_join: "Join a channel",
@@ -116,6 +119,8 @@ const EN_TEXT = {
     value: "Value",
     anchor: "Anchor",
     event: "Event",
+    event_name: "Event name",
+    source_url: "Source URL",
 
     proposal_response: "Proposal response",
     namespace: "Namespace",

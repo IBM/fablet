@@ -48,28 +48,28 @@ func MonitorBlockEvent(conn *NetworkConnection, channelID string,
 
 // MonitorChaincodeEvent to monitor chaincode event
 func MonitorChaincodeEvent(conn *NetworkConnection, channelID string, chaincodeID string, eventFilter string,
-	eventChan chan<- *fab.CCEvent, closeChan <-chan int, eventCloseChan chan<- int) error {
+	eventChan chan<- *fab.CCEvent, closeChan <-chan int, eventCloseChan chan<- error) {
 	logger.Debugf("MonitorChaincodeEvent of %s %s %s begins.", channelID, chaincodeID, eventFilter)
 
 	channelContext := conn.SDK.ChannelContext(channelID, fabsdk.WithIdentity(conn.SignID))
 	eventClient, err := event.New(channelContext, event.WithBlockEvents())
 	if err != nil {
-		eventCloseChan <- 0
 		logger.Debugf("Creating event got failed: %s.", err.Error())
-		return err
+		eventCloseChan <- err
+		return
 	}
 
 	reg, notifier, err := eventClient.RegisterChaincodeEvent(chaincodeID, eventFilter)
 	// TODO if the event service is closed, i.e., the peer is shut dow.
 	if err != nil {
-		eventCloseChan <- 0
 		logger.Debugf("Registration event got failed: %s.", err.Error())
-		return err
+		eventCloseChan <- err
+		return
 	}
 
 	defer func() {
 		eventClient.Unregister(reg)
-		eventCloseChan <- 0
+		eventCloseChan <- nil
 		logger.Debugf("MonitorChaincodeEvent of %s %s %s unregistered.", channelID, chaincodeID, eventFilter)
 	}()
 
@@ -78,7 +78,7 @@ func MonitorChaincodeEvent(conn *NetworkConnection, channelID string, chaincodeI
 		case event := <-notifier:
 			eventChan <- event
 		case <-closeChan:
-			return nil
+			return
 		}
 	}
 }

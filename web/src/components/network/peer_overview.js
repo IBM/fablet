@@ -21,6 +21,7 @@ import i18n from '../../i18n';
 import ChaincodeInstall from "../chaincode/install";
 import ChaincodeInstantiate from "../chaincode/instantiate";
 import ChaincodeExecute from "../chaincode/execute";
+import ChaincodeEvent from "../chaincode/event";
 import ChannelCreate from "../channel/create";
 import ChannelJoin from "../channel/join";
 import LedgerDetail from "../ledger/detail";
@@ -113,12 +114,15 @@ class PeerOverview extends React.Component {
             openLedgerDetail: false,
             openCreateChannel: false,
             openJoinChannel: false,
+            openChaincodeEvent: false,
+
             ccInstantiateOption: {},
             ccInstallOption: {},
             ccExecuteOption: {},
             ledgerQueryOption: {},
             channelCreateOption: {},
             channelJoinOption: {},
+            ccEventOption: {},
 
             // Initial chaincodes, all from channel chaincodes.
             mergedCCs: this.mergeCCs([], props.channelChaincodes),
@@ -138,6 +142,7 @@ class PeerOverview extends React.Component {
         this.handleLedgerQuery = this.handleLedgerQuery.bind(this);
         this.handleChannelCreate = this.handleChannelCreate.bind(this);
         this.handleChannelJoin = this.handleChannelJoin.bind(this);
+        this.handleChaincodeEvent = this.handleChaincodeEvent.bind(this);
 
         this.handleCloseChaincodeInstall = this.handleCloseChaincodeInstall.bind(this);
         this.handleCloseChaincodeInstantiate = this.handleCloseChaincodeInstantiate.bind(this);
@@ -145,6 +150,7 @@ class PeerOverview extends React.Component {
         this.handleCloseLedgerQuery = this.handleCloseLedgerQuery.bind(this);
         this.handleCloseChannelCreate = this.handleCloseChannelCreate.bind(this);
         this.handleCloseChannelJoin = this.handleCloseChannelJoin.bind(this);
+        this.handleCloseChaincodeEvent = this.handleCloseChaincodeEvent.bind(this);
 
         this.discoverUpdate = this.discoverUpdate.bind(this);
 
@@ -301,6 +307,19 @@ class PeerOverview extends React.Component {
         }
     }
 
+    handleChaincodeEvent(channelID, chaincodeID) {
+        const comp = this;
+        return function () {
+            comp.setState({ openChaincodeEvent: true });
+            comp.setState({
+                ccEventOption: {
+                    channelID: channelID,
+                    chaincodeID: chaincodeID                    
+                }
+            });
+        }
+    }
+
     getChannelPeers(channelID) {
         const peers = [];
         (this.state.peers || []).forEach(peer => {
@@ -363,6 +382,10 @@ class PeerOverview extends React.Component {
 
     handleCloseChannelCreate() {
         this.setState({ openCreateChannel: false });
+    }
+
+    handleCloseChaincodeEvent() {
+        this.setState({ openChaincodeEvent: false });
     }
 
     timeLast(t) {
@@ -491,6 +514,10 @@ class PeerOverview extends React.Component {
                     <Button size="small" color="primary" style={{ marginLeft: "auto", fontSize: 11 }}
                         onClick={this.handleChaincodeExecute("execute", cc.channelID, cc.name, peer)}>
                         {i18n("execute")}
+                    </Button>
+                    <Button size="small" color="primary" style={{ marginLeft: "auto", fontSize: 11 }}
+                        onClick={this.handleChaincodeEvent(cc.channelID, cc.name)}>
+                        {i18n("event")}
                     </Button>
                 </React.Fragment>);
         }
@@ -809,6 +836,16 @@ class PeerOverview extends React.Component {
                             // callBack={this.discoverUpdate}
                             callBack={refreshNetwork}
                             channelJoinOption={this.state.channelJoinOption}
+                        />
+                    ) : null
+                }
+
+                {
+                    (this.state.openChaincodeEvent) ? (
+                        <ChaincodeEvent key={"chaincodeevent" + this.state.openChaincodeEvent}
+                            open={this.state.openChaincodeEvent}
+                            onClose={this.handleCloseChaincodeEvent}
+                            ccEventOption={this.state.ccEventOption}
                         />
                     ) : null
                 }

@@ -1,5 +1,4 @@
 import React from 'react';
-import requestPromise from "request-promise-native";
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -8,13 +7,18 @@ import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
 import Box from '@material-ui/core/Box';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { getCurrIDConn, outputServiceErrorResult, formatTime, cntTrim } from "../../common/utils";
+import { getCurrIDConn } from "../../common/utils";
 import { log } from "../../common/log";
 import i18n from '../../i18n';
 import * as CONST from "../../common/constants";
@@ -54,125 +58,37 @@ const styles = (theme) => ({
     fixedHeightBox2: {
         maxHeight: window.screen.height * 0.6 - 100,
         overflow: "auto"
-    }
+    },
+    fieldDetail: {
+        fontSize: 11,
+    },
 });
 
 class ChaincodeEvent extends React.Component {
     constructor(props) {
-        super(props);
+        super(props);        
         this.state = {
             ...props,
             // onClose: props.onClose
             // open: props.open
             // ccEventOption
-            //    channelID, chaincodeID
-
+            //    channelID, chaincodeID, eventFilter
+            ccEvents: [],
+            errMsg: ""
         };
 
         this.isRunning = true;
         this.websocket = null;
 
+        this.handleChangeEventFilter = this.handleChangeEventFilter.bind(this);
         this.handleFinished = this.handleFinished.bind(this);
 
-        this.blocksUpdate = this.blocksUpdate.bind(this)
-        this.handleShowBlockDetail = this.handleShowBlockDetail.bind(this);
-        this.handleQueryBlock = this.handleQueryBlock.bind(this);
-        this.handleUpdatePreviousBlocks = this.handleUpdatePreviousBlocks.bind(this);
-        this.handleFullChart = this.handleFullChart.bind(this);
-        log.debug("LedgerDetail: constructor");
+        log.debug("ChaincodeEvent: constructor");
     }
 
     componentDidMount() {
-        // Update at first
-        this.ledgerUpdate();
-
         // Use block event to monitor
-        this.monitorBlockEvent(this.state.ledgerQueryOption.channelID);
-
-        // Show chart
-        this.initChart();
-        // Continue showing chart
-        this.showBlockEventChart();
-    }
-
-    handleFullChart() {
-        this.setState({ fullChart: !this.state.fullChart });
-        setTimeout(() => this.chart.resize(this.state.fullChart), 300);
-    }
-
-    getFullChartCardStyle() {
-        return this.state.fullChart ? {
-            width: window.screen.width * 0.6,
-            height: window.screen.height * 0.6 - 200,
-            position: "absolute",
-            zIndex: 999,
-            backgroundColor: "#ffffff",
-            border: "3px #eee solid",
-            cursor: "pointer"
-        } : {
-                cursor: "pointer"
-            };
-    }
-
-    getFullChartDivStyle() {
-        return this.state.fullChart ? {
-            width: window.screen.width * 0.6 - 100,
-            height: window.screen.height * 0.6 - 250,
-            cursor: "pointer"
-        } : {
-                width: 320,
-                height: 56,
-                cursor: "pointer"
-            };
-    }
-
-    initChart() {
-        log.debug("detail ............ initChart");
-        if (!document.getElementById("chartDiv")) {
-            // Use '()=>' function to have 'this' works.
-            setTimeout(() => this.initChart(), 1000);
-            return;
-        }
-        let chart = new BlockEventChart("chartDiv");
-        chart.initChart();
-        this.chart = chart;
-    }
-
-    showBlockEventChart() {
-        log.debug("showBlockEventChart...");
-
-        const detailPage = this;
-
-        if (!detailPage.chart) {
-            setTimeout(() => detailPage.showBlockEventChart(), 1000);
-            return;
-        }
-
-        const data = {};
-        const now = this.floorMilliSecond((new Date()).getTime());
-        // At most 60 seconds.
-        const LEN = this.chartDuration;
-        // Add 1 second
-        const BEGIN = now - LEN + 1000;
-        detailPage.eventDataList
-            .map(d => [d.updateTime, d.TXNumber])
-            .filter(d => d[0] >= BEGIN)
-            .forEach(d => {
-                if (data[d[0]]) {
-                    data[d[0]] += d[1];
-                }
-                else {
-                    data[d[0]] = d[1];
-                }
-            });;
-
-        const filledData = [];
-        for (let i = BEGIN; i <= now; i += 1000) {
-            filledData.push([i, data[i] ? data[i] : 0]);
-        }
-
-        detailPage.chart.showChart(filledData);
-        this.updateBlockEventChart = setTimeout(() => detailPage.showBlockEventChart(), 2000);
+        this.monitorChaincodeEvent(this.state.ccEventOption.channelID, this.state.ccEventOption.chaincodeID);
     }
 
     componentDidUpdate() {
@@ -181,10 +97,7 @@ class ChaincodeEvent extends React.Component {
     componentWillUnmount() {
         this.setState({ open: false });
         this.isRunning = false;
-        //clearTimeout(this.updateTO);
-        //clearTimeout(this.updateBlocksTO);
-        clearTimeout(this.updateBlockEventChart);
-        this.closeBlockEvent();
+        this.closeChaincodeEvent();
     }
 
     handleFinished() {
@@ -192,19 +105,17 @@ class ChaincodeEvent extends React.Component {
         this.state.onClose();
     }
 
-    handleShowBlockDetail(block) {
-        const comp = this;
-        return function () {
-            comp.setState({ queryError: "", currBlock: block });
-        };
+    handleChangeEventFilter(event) {
+        event.preventDefault();
+        if (this.websocket) {
+            const formData = new FormData(event.target);
+            const reqBody = this.createReqBody(formData.get("eventFilter"));            
+            this.websocket.send(JSON.stringify(reqBody));
+        }
     }
 
-    handleUpdatePreviousBlocks() {
-        this.blocksUpdatePrevious();
-    }
-
-    closeBlockEvent() {
-        // TODO the actual closing will happen after 60 seconds. Please see pong period example at gorilla/websocket.
+    closeChaincodeEvent() {
+        // TODO the actual closing will happen after several seconds. Please see pong period example at gorilla/websocket.
         // It's better to use active pong from client to server, but make it easy now.
         if (this.websocket) {
             log.debug("Close websocket when quit.");
@@ -212,37 +123,31 @@ class ChaincodeEvent extends React.Component {
         }
     }
 
-    addBlockEventData(eventData) {
-        log.debug("Add event data: ", eventData.updateTime, eventData.number);
-        if (this.state.ledger.height && (this.state.ledger.height - 1) >= eventData.number) {
-            return;
+    createReqBody(eventFilter) {
+        if (!eventFilter) {
+            eventFilter= ".*";
         }
-        eventData.updateTime = this.floorMilliSecond(eventData.updateTime);
-        this.eventDataList.push(eventData);
-        const now = this.floorMilliSecond((new Date()).getTime());
-        // TODO concurrent issue.
-        // Only less than 60 second records remain
-        this.eventDataList = this.eventDataList.filter(d => (now - d.updateTime) < this.chartDuration);
+        const currIDConn = getCurrIDConn();
+        const reqBody = {
+            connection: currIDConn,
+            channelID: this.state.ccEventOption.channelID,
+            chaincodeID: this.state.ccEventOption.chaincodeID, 
+            eventFilter: eventFilter
+        };
+        return reqBody;
     }
 
-    floorMilliSecond(milliSec) {
-        return Math.floor(milliSec / 1000) * 1000;
-    }
-
-    monitorBlockEvent(channelID) {
+    monitorChaincodeEvent(channelID, chaincodeID) {
         if (!this.isRunning || !this.state.open) {
             return;
         }
 
         const detailPage = this;
-        log.debug(`Begin block event websocket for channel ${channelID}`);
-        detailPage.websocket = new WebSocket(CONST.getWebsocketURL("/event/blockevent"));
+        log.debug(`Begin chaincode event websocket for channel ${channelID}, chaincode ${chaincodeID}`);
+        detailPage.websocket = new WebSocket(CONST.getWebsocketURL("/event/chaincodeevent"));
 
-        const currIDConn = getCurrIDConn();
-        const reqBody = {
-            connection: currIDConn,
-            channelID: channelID
-        };
+        // Default event filter ".*".
+        const reqBody = this.createReqBody();
 
         detailPage.websocket.onopen = function (e) {
             log.debug("Websocket connection established and then sending reqBody to server.");
@@ -252,10 +157,18 @@ class ChaincodeEvent extends React.Component {
         detailPage.websocket.onmessage = function (event) {
             log.debug(`Data received from server`);
             if (event && event.data) {
-                // TODO
-                // There might be problem if many updates happen concurrently.
-                detailPage.addBlockEventData(JSON.parse(event.data));
-                detailPage.ledgerUpdate();
+                console.info("Get chaincode event: ", event.data);
+                const res = JSON.parse(event.data);
+                if (res.error) {
+                    detailPage.setState({errMsg: res.error});
+                }
+                else {
+                    const existCCEvents = [res].concat(detailPage.state.ccEvents);
+                    detailPage.setState({
+                        ccEvents: existCCEvents,
+                        errMsg: ""
+                    });
+                }
             }
         };
 
@@ -264,7 +177,7 @@ class ChaincodeEvent extends React.Component {
             log.debug(`Websocket connection closed, wasClean: ${event.wasClean}, code: ${event.code}, reason: ${event.reason}`);
             setTimeout(function () {
                 log.debug("Reconnect the websocket.");
-                detailPage.monitorBlockEvent(channelID);
+                detailPage.monitorChaincodeEvent(channelID, chaincodeID);
             }, 1000);
         };
 
@@ -274,592 +187,62 @@ class ChaincodeEvent extends React.Component {
         };
     }
 
-    async ledgerUpdate() {
-        log.log("Begin to update the ledger details.", this.state.ledgerQueryOption.channelID, this.state.ledgerQueryOption.target);
-
-        //clearTimeout(this.updateTO);
-        if (!this.isRunning || !this.state.open) {
-            return;
-        }
-
-        // To check id/conn validity.
-        const currIDConn = getCurrIDConn();
-
-        const reqBody = {
-            connection: currIDConn,
-            channelID: this.state.ledgerQueryOption.channelID,
-            targets: [this.state.ledgerQueryOption.target]
-        };
-
-        let myHeaders = new Headers({
-            'Accept': 'application/json',
-            'Content-Type': 'application/octet-stream'
-        });
-
-        let option = {
-            url: CONST.getServiceURL("/ledger/query"),
-            method: 'POST',
-            headers: myHeaders,
-            json: true,
-            resolveWithFullResponse: true,
-            body: reqBody
-        };
-
-        try {
-            log.debug("LedgerQuery result");
-            this.setState({ loading: true });
-            let result = await requestPromise(option);
-            this.setState({ loading: false });
-            if (result) {
-                result = result.body;
-                if (result.resCode === 200) {
-                    this.setState({ ledger: result.ledger });
-                    this.blocksUpdate();
-                }
-                else {
-                    // this.setState({ executeError: result.resCode + ". " + result.errMsg });
-                }
-            }
-            else {
-                // this.setState({ executeError: i18n("no_result_error") });
-            }
-            // TODO timeout
-            // this.updateTO = setTimeout(this.ledgerUpdate, CONST.TIMEOUT_LEDGER_UPDATE);
-        }
-        catch (e) {
-            log.error("Exception in fetching:", e);
-            this.setState({
-                // executeError: String(err),
-                loading: false
-            });
-        }
-    }
-
-    // TODO the timeout function might be removed and won't back.
-    async blocksUpdate() {
-        if (!this.isRunning || !this.state.open) {
-            return;
-        }
-        log.log("Begin to update the ledger blocks.", this.state.ledgerQueryOption.channelID, this.state.ledgerQueryOption.target);
-
-        let latestBlockNum = -1;
-        if (this.state.blocks && this.state.blocks.length > 0) {
-            latestBlockNum = this.state.blocks[0].number;
-        }
-        let ledgerHeight = 0;
-        if (this.state.ledger) {
-            ledgerHeight = this.state.ledger.height;
-        }
-        if (ledgerHeight <= 0 || latestBlockNum >= ledgerHeight - 1) {
-            log.log("The current blocks list is up to date.");
-            return;
-        }
-        if (latestBlockNum === -1) {
-            // Initial update, to avoid too many blocks.
-            latestBlockNum = ledgerHeight - CONST.INITIAL_BLOCKS - 1;
-            if (latestBlockNum < -1) {
-                latestBlockNum = -1;
-            }
-        }
-
-        const begin = latestBlockNum + 1;
-        const len = (ledgerHeight - 1) - (latestBlockNum + 1) + 1;
-
-        try {
-            log.debug("LedgerUpdate result");
-            this.setState({ loading: true });
-            let result = await this.blocksUpdateWithRange(begin, len);
-            this.setState({ loading: false });
-
-            if (result) {
-                result = result.body;
-                if (result.resCode === 200) {
-                    this.setState({ blocks: this.insertBlocks(result.blocks) });
-                }
-                else {
-                    // this.setState({ executeError: result.resCode + ". " + result.errMsg });
-                }
-            }
-            else {
-                // this.setState({ executeError: i18n("no_result_error") });
-            }
-            // TODO timeout
-            // this.updateBlocksTO = setTimeout(this.blocksUpdate, CONST.TIMEOUT_LEDGER_UPDATE);
-        }
-        catch (e) {
-            log.error("Exception in fetching:", e);
-            this.setState({
-                // executeError: String(err),
-                loading: false
-            });
-        }
-    }
-
-    async blocksUpdatePrevious() {
-        this.setState({ loading: true });
-        log.log("Begin to update the previous ledger blocks.", this.state.ledgerQueryOption.channelID, this.state.ledgerQueryOption.target);
-
-        if (!this.state.blocks || this.state.blocks.length <= 0) {
-            return;
-        }
-        const earliest = this.state.blocks[this.state.blocks.length - 1].number;
-        if (earliest <= 0) {
-            return;
-        }
-        let begin = (earliest - 1) - CONST.INITIAL_BLOCKS + 1;
-        if (begin < 0) {
-            begin = 0;
-        }
-        const len = (earliest - 1) - begin + 1;
-
-        try {
-            log.debug("blocksUpdatePrevious result");
-
-            let result = await this.blocksUpdateWithRange(begin, len);
-            this.setState({ loading: false });
-
-            if (result) {
-                result = result.body;
-                if (result.resCode === 200) {
-                    this.setState({ blocks: this.appendBlocks(result.blocks) });
-                }
-                else {
-                    // this.setState({ executeError: result.resCode + ". " + result.errMsg });
-                }
-            }
-            else {
-                // this.setState({ executeError: i18n("no_result_error") });
-            }
-            // TODO timeout
-            // this.updateBlocksTO = setTimeout(this.blocksUpdate, CONST.TIMEOUT_LEDGER_UPDATE);
-        }
-        catch (e) {
-            log.error("Exception in fetching:", e);
-            this.setState({
-                // executeError: String(err),
-                loading: false
-            });
-        }
-    }
-
-    // Only append previous, no insert now.
-    appendBlocks(blocks) {
-        if (!blocks || blocks.length <= 0) {
-            return;
-        }
-        return (this.state.blocks || []).concat(...(blocks.reverse()));
-    }
-
-    insertBlocks(blocks) {
-        if (!blocks || blocks.length <= 0) {
-            return;
-        }
-        const max = this.state.blocks.length > 0 ? this.state.blocks[0].number : -1;
-        return blocks.filter(b => b.number > max)
-                .reverse()
-                .concat(...(this.state.blocks));
-    }
-
-    async blocksUpdateWithRange(begin, len) {
-        // To check id/conn validity.
-        const currIDConn = getCurrIDConn();
-
-        const reqBody = {
-            connection: currIDConn,
-            channelID: this.state.ledgerQueryOption.channelID,
-            targets: [this.state.ledgerQueryOption.target],
-            begin: begin,
-            len: len
-        }
-
-        let myHeaders = new Headers({
-            'Accept': 'application/json',
-            'Content-Type': 'application/octet-stream'
-        });
-        let option = {
-            url: CONST.getServiceURL("/ledger/block"),
-            method: 'POST',
-            //mode: 'cors',
-            //credentials: 'include',
-            headers: myHeaders,
-            body: reqBody,
-            json: true,
-            resolveWithFullResponse: true,
-        };
-
-        return await requestPromise(option);
-    }
-
-    handleQueryBlock(event) {
-        event.preventDefault();
-
-        this.setState({
-            queryError: "",
-            isQuerying: true
-        });
-
-        // To check id/conn validity.
-        const currIDConn = getCurrIDConn();
-        const formData = new FormData(event.target);
-
-        const reqBody = {
-            connection: currIDConn,
-            channelID: this.state.ledgerQueryOption.channelID,
-            targets: [this.state.ledgerQueryOption.target],
-            queryKey: formData.get("queryKey")
-        };
-
-        log.log("Instantiate chaincode: ", reqBody);
-
-        let myHeaders = new Headers({
-            'Accept': 'application/json',
-            'Content-Type': 'application/octet-stream'
-        });
-        let request = new Request(CONST.getServiceURL("/ledger/blockany"), {
-            method: 'POST',
-            mode: 'cors',
-            //credentials: 'include',
-            headers: myHeaders,
-            body: JSON.stringify(reqBody),
-        });
-
-        fetch(request)
-            .then(response => response.json())
-            .then(result => {
-                log.debug("Block query result", result);
-
-                this.setState({
-                    isQuerying: false
-                });
-
-                if (result) {
-                    if (result.resCode === 200) {
-                        this.setState({ currBlock: result.block })
-                    }
-                    else {
-                        this.setState({ queryError: outputServiceErrorResult(result) });
-                    }
-                }
-                else {
-                    this.setState({ queryError: i18n("no_result_error") });
-                }
-            })
-            .catch(function (err) {
-                this.setState({
-                    queryError: String(err),
-                    isQuerying: false
-                });
-            });
-    }
-
-
-    showTitleValue(title, value, key) {
-        const classes = this.props.classes;
-        return (
-            <React.Fragment key={key}>
-                <Grid item xs={2} className={classes.normalTitle}>{title}</Grid>
-                <Grid item xs={10} className={classes.normalFieldFontWidth}>{value}</Grid>
-            </React.Fragment>
-        );
-    }
-
-    showActionEndorsers(endorsers) {
-        const classes = this.props.classes;
-        let idx = 0;
-        return endorsers.map(endorser => {
-            return (
-                <Grid container key={"endorser_" + (idx++)}>
-                    <Grid item xs={12} className={classes.normalTitle}>{i18n("block_endorser_of_all_endorsers", idx, endorsers.length)}</Grid>
-                    <Grid container style={{ marginLeft: 20 }}>
-                        {this.showTitleValue(i18n("msp_id"), endorser.MSPID)}
-                        {/* {this.showTitleValue(i18n("id_cn"), endorser.commonName)} */}
-                        {this.showTitleValue(i18n("id_subject"), endorser.subject)}
-                        {this.showTitleValue(i18n("id_issuer"), endorser.issuer)}
-                    </Grid>
-                </Grid>
-            );
-        });
-    }
-
-    showTransactionActions(actions) {
-        const classes = this.props.classes;
-        let idx = 0;
-        return actions.map(action => {
-            return (
-                <Grid container style={{ marginLeft: 20 }} key={"action_" + (idx++)}>
-                    <Grid item xs={12} className={classes.normalTitle}>{i18n("block_action_of_all_actions", idx, actions.length)}</Grid>
-                    <Grid container style={{ marginLeft: 20 }}>
-                        {this.showTitleValue(i18n("chaincode"), action.chaincodeName)}
-                        {/* TODO lscc arguments with byte code not fine, maybe others have same issue. */}
-                        {this.showTitleValue(i18n("chaincode_arguments"), action.arguments.join(";  "))}
-                        {this.showActionEndorsers(action.endorsers)}
-                        {this.showProposalResponse(action.proposalResponse)}
-                    </Grid>
-                </Grid>
-            );
-        });
-    }
-
-    showReadSet(readSet) {
-        const classes = this.props.classes;
-        const readsetList = readSet || [];
-        let idx = 0;
-        return (
-            <Grid container style={{ marginLeft: 20 }}>
-                {
-                    readsetList.map(read => {
-                        return (
-                            <React.Fragment key={read.key + read.verBlockNum + read.verTxNum}>
-                                <Grid item xs={12} className={classes.normalTitle}>{i18n("readset_of_all", ++idx, readsetList.length)}</Grid>
-                                <Grid container style={{ marginLeft: 20 }}>
-                                    {this.showTitleValue(i18n("key"), read.key)}
-                                    {this.showTitleValue(i18n("block"), read.verBlockNum)}
-                                    {this.showTitleValue(i18n("transaction"), read.verTxNum)}
-                                </Grid>
-                            </React.Fragment>
-                        );
-                    })
-                }
-            </Grid>);
-    }
-
-    showWriteSet(writeSet, isLscc) {
-        const classes = this.props.classes;
-        const writesetList = writeSet || [];
-        let idx = 0;
-        return (
-            <Grid container style={{ marginLeft: 20 }}>
-                {
-                    writesetList.map(write => {
-                        return (
-                            <React.Fragment key={write.key}>
-                                <Grid item xs={12} className={classes.normalTitle}>{i18n("writeset_of_all", ++idx, writesetList.length)}</Grid>
-                                <Grid container style={{ marginLeft: 20 }}>
-                                    {this.showTitleValue(i18n("key"), write.key)}
-                                    {this.showTitleValue(i18n("isDelete"), String(write.isDelete))}
-                                    {isLscc ? this.showChaincodeData(write.value) : this.showTitleValue(i18n("value"), write.value)}
-                                </Grid>
-                            </React.Fragment>
-                        );
-                    })
-                }
-            </Grid>);
-    }
-
-    showChaincodeData(ccd) {
-        const classes = this.props.classes;
-        let idx = 0;
-        return (
-            <React.Fragment>
-                <Grid item xs={12} className={classes.normalTitle}>{i18n("chaincode_deployed")}</Grid>
-                <Grid container style={{ marginLeft: 20 }}>
-                    {this.showTitleValue(i18n("chaincode"), ccd.name + "@" + ccd.version)}
-                    {
-                        (ccd.principals || []).map(princ => {
-                            return (
-                                this.showTitleValue(i18n("principal"), princ, "princ" + (idx++))
-                            );
-                        })
-                    }
-                    {this.showTitleValue(i18n("rule"), ccd.rule)}
-                </Grid>
-            </React.Fragment>);
-    }
-
-    showProposalResponse(pr) {
-        const classes = this.props.classes;
-        let idx = 0;
-        let isLscc = (pr.chaincode || {}).name === "lscc";
-        const rwContent = ((pr.txReadWriteSet || {}).nsReadWriteSets || []).map(nsrw => {
-            return (
-                <Grid container key={"txrw" + (idx++)}>
-                    {this.showTitleValue(i18n("namespace"), nsrw.nameSpace)}
-                    {this.showReadSet(nsrw.kvReadSet)}
-                    {this.showWriteSet(nsrw.kvWriteSet, isLscc)}
-                </Grid>
-            );
-        });
-
-        return (
-            <Grid container>
-                <Grid item xs={12} className={classes.normalTitle}>{i18n("proposal_response")}</Grid>
-                <Grid container style={{ marginLeft: 20 }}>
-                    {this.showTitleValue(i18n("chaincode"), (pr.chaincode || {}).name + "@" + (pr.chaincode || {}).version)}
-                    {isLscc ? this.showChaincodeData(pr.response) : this.showTitleValue(i18n("response"), pr.response)}
-                    {rwContent}
-                </Grid>
-            </Grid>
-        );
-    }
-
-    showBlockDetail(block) {
-        if (!this.state.open) {
-            return null;
-        }
-
-        const classes = this.props.classes;
-        let idx = 0;
-
-        return (
-            <Grid container>
-                {this.showTitleValue(i18n("block_number"), block.number)}
-                {this.showTitleValue(i18n("block_hash"), block.blockHash)}
-                {this.showTitleValue(i18n("block_data_hash"), block.dataHash)}
-                {this.showTitleValue(i18n("block_previous_hash"), block.previousHash)}
-                {this.showTitleValue(i18n("block_time"), formatTime(block.time))}
-
-                {
-                    block.transactions.map(transaction => {
-                        return (
-                            <React.Fragment key={"transaction_" + (idx++)}>
-                                <Grid item xs={12} className={classes.normalTitle} style={{ marginTop: 10 }}>{i18n("block_tx_of_all_tx", idx, block.transactions.length)}</Grid>
-                                {this.showTransactionActions(transaction.actions)}
-                            </React.Fragment>
-                        )
-                    })
-                }
-
-            </Grid>);
-    }
-
-    showAllBlocks() {
-        const classes = this.props.classes;
-        const allBlocks = (this.state.blocks || []).map(block => {
-            return (
-                <Card className={classes.ledgerDetail} key={"block_" + block.number} onClick={this.handleShowBlockDetail(block)}>
-                    <CardContent>
-                        <Typography display="inline" color="textSecondary">
-                            {i18n("block")}: {block.number}
-                        </Typography>
-                        <Tooltip interactive title={i18n("block_hash") + ": " + block.blockHash}>
-                            <Typography display="inline" className={classes.normalField} style={{ marginLeft: 20 }}>
-                                {cntTrim(block.blockHash, 8)}
-                            </Typography>
-                        </Tooltip>
-
-                        <Typography className={classes.normalField}>
-                            {i18n("transaction")}: {block.transactions.length}
-                        </Typography>
-
-                        <Typography className={classes.normalField}>
-                            {formatTime(block.time)}
-                        </Typography>
-                    </CardContent>
-                </Card>);
-        });
-
-        return (
-            <React.Fragment>
-                {allBlocks}
-                {
-                    this.state.blocks && this.state.blocks.length > 0 && this.state.blocks[this.state.blocks.length - 1].number > 0 ?
-                        this.showPreviousBlocks() : null
-                }
-            </React.Fragment>
-        );
-    }
-
-    showPreviousBlocks() {
-        const classes = this.props.classes;
-        return (
-            <Card className={classes.ledgerDetail} key={"block_prev_"} onClick={this.handleUpdatePreviousBlocks}>
-                <CardContent>
-                    <Typography display="inline" color="textSecondary">
-                        {i18n("previous_blocks")}...
-                    </Typography>
-                </CardContent>
-            </Card>);
-    }
-
     render() {
         const classes = this.props.classes;
 
-        return this.state.ledger ? (
+        return this.state.ccEventOption ? (
             <Dialog
                 disableBackdropClick
                 disableEscapeKeyDown
                 maxWidth={false}
-                fullWidth
-                style={{ maxHeight: window.screen.height * 0.9 }}
+                style={{ maxHeight: window.screen.height * 0.6 }}
                 open={this.state.open}
-                onClose={this.handleFinished}
             >
-                <DialogTitle id="dialog_title">{i18n("ledger_query")}</DialogTitle>
-                <DialogContent>
-                    <Grid container style={{ height: window.screen.height * 0.6 }} spacing={2}>
-                        <Grid item xs={8}>
-                            <Grid container spacing={3}>
-                                <Grid item xs={12}>
-                                    <Card className={classes.ledgerSummary}>
-                                        <CardContent>
-                                            <Typography color="textSecondary" gutterBottom>
-                                                {i18n("ledger_height")}
-                                            </Typography>
-                                            <Typography className={classes.ledgerSummaryField}>
-                                                {this.state.ledger.height}
-                                            </Typography>
-                                        </CardContent>
-                                    </Card>
+                <DialogTitle id="dialog_title">{i18n("chaincode_event")}</DialogTitle>
+                <DialogContent style={{ height: window.screen.height * 0.6 }}>
+                    <Grid container spacing={2}>
+                        
+                                <Grid item xs={5}>
                                     <Card className={classes.ledgerSummary}>
                                         <CardContent>
                                             <Typography color="textSecondary" gutterBottom>
                                                 {i18n("channel")}
                                             </Typography>
-                                            <Tooltip title={this.state.ledgerQueryOption.channelID}>
+                                            <Tooltip title={this.state.ccEventOption.channelID}>
                                                 <Typography nowrap="true" className={classes.ledgerSummaryField}>
-                                                    {this.state.ledgerQueryOption.channelID}
+                                                    {this.state.ccEventOption.channelID}
                                                 </Typography>
                                             </Tooltip>
                                         </CardContent>
                                     </Card>
-
-                                    {/* <Card className={classes.ledgerSummary}>
+                                    <Card className={classes.ledgerSummary}>
                                         <CardContent>
                                             <Typography color="textSecondary" gutterBottom>
-                                                {i18n("endorser")}
+                                                {i18n("chaincode")}
                                             </Typography>
-                                            <Tooltip title={this.state.ledger.endorser || ""}>
-                                                <Typography className={classes.ledgerSummaryField}>
-                                                    {this.state.ledger.endorser}
+                                            <Tooltip title={this.state.ccEventOption.channelID}>
+                                                <Typography nowrap="true" className={classes.ledgerSummaryField}>
+                                                {this.state.ccEventOption.chaincodeID}
                                                 </Typography>
                                             </Tooltip>
-                                        </CardContent>
-                                    </Card> */}
-
-                                    <Card className={classes.ledgerSummary}>
-                                        <CardContent style={this.getFullChartCardStyle()} onClick={this.handleFullChart}>
-                                            <div id="chartDiv" style={this.getFullChartDivStyle()}></div>
                                         </CardContent>
                                     </Card>
                                 </Grid>
 
-                                <Grid item xs={12}>
-                                    <Box className={classes.fixedHeightBox}>
-                                        {
-                                            this.state.blocks ? this.showAllBlocks() : null
-                                        }
-                                    </Box>
-                                </Grid>
-
-
-                            </Grid>
-
-
-                        </Grid>
-                        <Grid item xs={4}>
-                            <Grid container spacing={3}>
-                                <Grid item xs={12}>
-                                    <form onSubmit={this.handleQueryBlock}>
+                                <Grid item xs={7}>
+                                    <form onSubmit={this.handleChangeEventFilter}>
                                         <Grid container spacing={3}>
                                             <Grid item xs={10}>
                                                 <TextField
                                                     fullWidth
-                                                    label={i18n("block_query_any")}
+                                                    label={i18n("chaincode_event_filter")}
                                                     variant="outlined"
                                                     required
-                                                    id="queryKey"
-                                                    name="queryKey"
-                                                    InputProps={{ classes: { input: classes.normalField } }}
+                                                    id="eventFilter"
+                                                    name="eventFilter"
+                                                    defaultValue={this.state.ccEventOption.eventFilter || ".*"}
+                                                    // TODO readonly
+                                                    InputProps={{ classes: { input: classes.normalField }, readOnly: true }}
                                                 />
                                             </Grid>
                                             <Grid item xs={2}>
@@ -868,31 +251,58 @@ class ChaincodeEvent extends React.Component {
                                                     autoFocus
                                                     variant="contained"
                                                     color="primary"
-                                                    style={{ marginLeft: "auto", height: 52 }}
-                                                    disabled={this.state.isQuerying}>
+                                                    style={{ marginLeft: "auto", height: 52 }}>
                                                     {i18n("query")}
                                                 </Button>
+                                            </Grid>
+
+                                            <Grid item xs={12}>
+                                                {
+                                                    this.state.errMsg ? (
+                                                        <Typography color="error" style={{ marginRight: "auto", fontSize: 11 }}>{this.state.errMsg}</Typography>
+                                                    ) : null
+                                                }
                                             </Grid>
                                         </Grid>
                                     </form>
                                 </Grid>
 
                                 <Grid item xs={12}>
-                                    <Box className={classes.fixedHeightBox2}>
-                                        {
-                                            this.state.queryError ?
-                                                (<Typography className={classes.normalField}>{this.state.queryError}</Typography>)
-                                                :
-                                                this.state.currBlock ?
-                                                    this.showBlockDetail(this.state.currBlock)
-                                                    :
-                                                    null
-                                        }
+                                    <Box>
+                                        <Table stickyHeader className={classes.table} size="small" aria-label="chaincodeeventss">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell>{i18n("chaincode")}</TableCell>
+                                                    <TableCell align="right">{i18n("channel")}</TableCell>
+                                                    <TableCell align="right">{i18n("event_name")}</TableCell>
+                                                    <TableCell align="right">{i18n("payload")}</TableCell>
+                                                    <TableCell align="right">{i18n("transaction_id")}</TableCell>
+                                                    <TableCell align="right">{i18n("block_number")}</TableCell>
+                                                    <TableCell align="right">{i18n("source_url")}</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+
+                                            <TableBody key={"tbody_ccevent_" + this.state.ccEventOption.chaincodeID}>
+                                                {this.state.ccEvents.map((ccEvent) => {
+                                                    return (
+                                                        <TableRow key={"ccevent_" + ccEvent.TXID}>
+                                                            <TableCell component="th" scope="row"><Typography noWrap className={classes.fieldDetail}>{ccEvent.chaincodeID}</Typography></TableCell>
+                                                            <TableCell align="right"><Typography noWrap className={classes.fieldDetail}>{this.state.ccEventOption.channelID}</Typography></TableCell>
+                                                            <TableCell align="right"><Typography noWrap className={classes.fieldDetail}>{ccEvent.eventName}</Typography></TableCell>
+                                                            <TableCell align="right"><Typography noWrap className={classes.fieldDetail}>{ccEvent.payload}</Typography></TableCell>
+                                                            <TableCell align="right"><Typography noWrap className={classes.fieldDetail}>{ccEvent.TXID}</Typography></TableCell>
+                                                            <TableCell align="right"><Typography noWrap className={classes.fieldDetail}>{ccEvent.blockNumber}</Typography></TableCell>
+                                                            <TableCell align="right"><Typography noWrap className={classes.fieldDetail}>{ccEvent.sourceURL}</Typography></TableCell>
+                                                        </TableRow>
+                                                    );
+                                                })}
+                                            </TableBody>
+
+                                        </Table>
+
                                     </Box>
                                 </Grid>
-
-                            </Grid>
-                        </Grid>
+                    
                     </Grid>
                 </DialogContent>
 
