@@ -92,6 +92,7 @@ func generateOption(options ...RequestOptionFunc) *RequestOption {
 
 func SetHeader(res http.ResponseWriter, req *http.Request, addHeaders map[string]string) {
 	header := res.Header()
+	// TODO CORS is not safe now.
 	header.Set("Access-Control-Allow-Origin", "*")
 	header.Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE")
 	header.Set("Access-Control-Allow-Headers", "X-Requested-With,content-type")
