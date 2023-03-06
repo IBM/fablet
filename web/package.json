@@ -8,7 +8,7 @@
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-router-dom": "^5.1.2",
-    "react-scripts": "^3.3.0",
+    "react-scripts": "^5.0.1",
     "typeface-roboto": "^0.0.75",
     "request-promise-native": "^1.0.8",
     "websocket": "^1.0.31",
